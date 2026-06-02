@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Middle Sea — OSE Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a1208;--parchment:#f5e6c8;--parchment-dark:#e8d5a8;--parchment-deep:#d4b878;--crimson:#8b1a1a;--crimson-l:#c0392b;--gold:#c9922a;--gold-l:#e8b84b;--ink-light:#5c4033;--panel:#12100e;--panel-border:#3a2a18}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'EB Garamond',Georgia,serif;background:var(--panel);color:var(--parchment);min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:0 0 60px}
+.hdr{text-align:center;padding:32px 20px 18px;border-bottom:2px solid var(--panel-border);background:linear-gradient(180deg,#0d0b08,var(--panel))}
+.hdr::before{content:'✦ ─── ✦ ─── ✦ ─── ✦ ─── ✦';display:block;color:var(--gold);opacity:.35;font-size:11px;letter-spacing:4px;margin-bottom:10px}
+.hdr h1{font-family:'Cinzel Decorative',serif;font-size:clamp(16px,3vw,28px);color:var(--gold-l);text-shadow:0 0 30px rgba(201,146,42,.4),0 2px 4px rgba(0,0,0,.8);letter-spacing:2px}
+.hdr p{color:var(--parchment-deep);font-style:italic;margin-top:5px;font-size:15px;opacity:.75}
+.tabs{display:flex;border-bottom:2px solid var(--panel-border);background:#0d0b08}
+.tab{flex:1;padding:13px 8px;background:none;border:none;border-bottom:3px solid transparent;color:var(--parchment-deep);font-family:'Cinzel',serif;font-size:12px;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:all .2s}
+.tab:hover{color:var(--gold-l)}
+.tab.on{color:var(--gold-l);border-bottom-color:var(--gold);background:rgba(201,146,42,.05)}
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:80vh}
+.ctrl{background:#0f0d0a;border-right:2px solid var(--panel-border);padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+.clbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.85;display:block;margin-bottom:5px}
+.csel,.cinp{width:100%;background:#1e1810;border:1px solid var(--panel-border);color:var(--parchment);font-family:'EB Garamond',serif;font-size:15px;padding:7px 10px;border-radius:3px;outline:none;transition:border-color .2s;appearance:none}
+.csel:focus,.cinp:focus{border-color:var(--gold)}
+.csel{cursor:pointer}
+.lvl-row{display:flex;align-items:center;gap:10px}
+.lvl-val{font-family:'Cinzel',serif;font-size:22px;color:var(--gold-l);min-width:30px;text-align:center}
+.lvl-btn{width:30px;height:30px;background:#1e1810;border:1px solid var(--panel-border);color:var(--gold);font-size:18px;cursor:pointer;border-radius:3px;line-height:1;transition:background .15s}
+.lvl-btn:hover{background:#2a2010;border-color:var(--gold)}
+.gen-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--crimson),#6b1212);border:1px solid #a02020;color:var(--parchment);font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:all .2s;box-shadow:0 2px 12px rgba(139,26,26,.4)}
+.gen-btn:hover{background:linear-gradient(135deg,var(--crimson-l),var(--crimson));box-shadow:0 4px 20px rgba(139,26,26,.6);transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.prt-btn{width:100%;padding:9px;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:all .2s}
+.prt-btn:hover{background:rgba(201,146,42,.1)}
+.divider{border:none;border-top:1px solid var(--panel-border)}
+.cls-hint{font-size:12px;color:var(--parchment-deep);line-height:1.7}
+.cls-hint span{color:var(--gold);font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px}
+.card-area{padding:24px;background:#12100e;overflow-y:auto}
+.empty{display:flex;align-items:center;justify-content:center;height:350px;flex-direction:column;gap:10px;opacity:.25}
+.empty-ico{font-size:60px;color:var(--gold)}
+.empty p{font-family:'Cinzel',serif;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.card{background:var(--parchment);color:var(--ink);border:3px solid var(--parchment-deep);border-radius:4px;box-shadow:0 0 0 1px #b89040,inset 0 0 80px rgba(180,140,60,.06),0 8px 40px rgba(0,0,0,.6)}
+.card-hdr{background:var(--crimson);padding:16px 22px 12px;border-bottom:3px solid var(--parchment-deep)}
+.card-hdr h2{font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--parchment);letter-spacing:1px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.card-hdr p{color:var(--parchment-deep);font-size:13px;font-style:italic;margin-top:2px;opacity:.9}
+.card-body{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:1/-1}
+.sec-ttl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--crimson);border-bottom:1px solid var(--parchment-deep);padding-bottom:3px;margin-bottom:8px}
+.ab-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.ab-box{background:var(--parchment-dark);border:1px solid var(--parchment-deep);border-radius:3px;text-align:center;padding:5px 2px}
+.ab-key{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--crimson);display:block}
+.ab-score{font-size:19px;font-weight:500;display:block;line-height:1.1}
+.ab-mod{font-size:11px;color:var(--ink-light);display:block}
+.cbt-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:7px}
+.cbt-box{background:var(--parchment-dark);border:1px solid var(--parchment-deep);border-radius:3px;padding:7px 4px;text-align:center}
+.cbt-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crimson);display:block}
+.cbt-val{font-size:20px;font-weight:500;display:block;line-height:1.1}
+.saves-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.saves-tbl td{padding:2px 5px;border-bottom:1px solid rgba(180,140,60,.2)}
+.saves-tbl td:last-child{text-align:right;font-weight:500;font-family:'Cinzel',serif}
+.spells{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+.sp-box{background:var(--parchment-dark);border:1px solid var(--parchment-deep);border-radius:3px;padding:3px 7px;min-width:34px;text-align:center}
+.sp-lvl{font-size:8px;color:var(--crimson);font-family:'Cinzel',serif;display:block}
+.sp-cnt{font-size:17px;font-weight:500;display:block}
+.spell-names{font-size:12px;color:var(--ink-light);font-style:italic;line-height:1.5;margin-top:2px}
+.spell-row{margin-bottom:4px}
+.spell-row strong{font-style:normal;font-size:11px;font-family:'Cinzel',serif;letter-spacing:.5px;color:var(--crimson);text-transform:uppercase}
+.eq-row{padding:3px 0;border-bottom:1px solid rgba(180,140,60,.14);font-size:13px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.eq-row:last-child{border-bottom:none}
+.eq-det{color:var(--ink-light);font-size:12px;text-align:right;flex-shrink:0}
+.spec-tag{background:var(--crimson);color:var(--parchment);font-size:8px;font-family:'Cinzel',serif;letter-spacing:1px;padding:1px 4px;border-radius:2px;margin-left:5px;vertical-align:middle}
+.spec-list{list-style:none}
+.spec-item{padding:3px 0 3px 13px;border-bottom:1px solid rgba(180,140,60,.12);font-size:12px;position:relative;line-height:1.4}
+.spec-item:before{content:'▶';position:absolute;left:0;color:var(--crimson);font-size:8px;top:6px}
+.spec-item:last-child{border-bottom:none}
+.lang-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.lang-tag{background:var(--parchment-dark);border:1px solid var(--parchment-deep);font-size:11px;padding:2px 7px;border-radius:2px}
+.extra-block{background:rgba(139,26,26,.07);border:1px solid rgba(139,26,26,.2);border-radius:3px;padding:9px 12px;margin-top:3px;font-size:13px}
+.extra-block p{margin:2px 0}
+.note-txt{font-size:11px;color:var(--ink-light);font-style:italic;margin-top:3px}
+.mc-card{background:var(--parchment);color:var(--ink);border:3px solid var(--parchment-deep);border-radius:4px;box-shadow:0 0 0 1px #b89040,0 8px 40px rgba(0,0,0,.6);overflow:hidden}
+.mc-hdr{background:var(--ink);padding:12px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px;border-bottom:2px solid var(--gold)}
+.mc-hf{display:flex;flex-direction:column;gap:2px}
+.mc-hl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.mc-hv{font-family:'Cinzel',serif;font-size:15px;color:var(--parchment)}
+.mc-body{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mc-row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(180,140,60,.2);padding:4px 0;font-size:13px}
+.mc-rv{font-weight:500;font-family:'Cinzel',serif;font-size:14px}
+.poa-section{grid-column:1/-1;display:grid;grid-template-columns:140px 1fr;gap:16px;padding-top:10px;border-top:1px solid rgba(180,140,60,.3)}
+.poa-big{font-family:'Cinzel',serif;font-size:48px;color:var(--crimson);text-align:center;line-height:1}
+.poa-lbl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;text-align:center;color:var(--ink-light);margin-top:3px}
+.poa-sub{font-size:11px;color:var(--ink-light);font-style:italic;text-align:center;margin-top:4px}
+.cpoa-list{font-size:12px}
+.cpoa-item{padding:2px 0;border-bottom:1px solid rgba(180,140,60,.15)}
+.ab-tags{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;padding-top:8px;border-top:1px solid rgba(180,140,60,.3)}
+.ab-tag{background:var(--ink);color:var(--parchment);font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;padding:3px 9px;border-radius:2px;text-transform:uppercase}
+.chk-grp{display:flex;flex-wrap:wrap;gap:7px}
+.chk-item{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;color:var(--parchment)}
+.chk-item input{accent-color:var(--gold);cursor:pointer;width:14px;height:14px}
+@media print{body{background:white}.hdr,.tabs,.ctrl{display:none!important}.layout{display:block}.card-area{padding:0}.card,.mc-card{box-shadow:none;border-color:#999}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>Middle Sea — OSE Generator</h1>
+    <p>Old-School Essentials · Custom Campaign · v7</p>
+    <a href="https://nerdhubnexus.netlify.app" target="_blank" style="display:inline-block;margin-top:14px;padding:9px 22px;background:transparent;border:1px solid var(--gold);color:var(--gold-l);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;text-decoration:none;border-radius:3px;transition:all .2s" onmouseover="this.style.background='rgba(201,146,42,0.12)'" onmouseout="this.style.background='transparent'">✦ Visit the Nerd Hub ✦</a>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="switchTab('npc',this)">NPC Generator</button>
+    <button class="tab" onclick="switchTab('mc',this)">Mass Combat</button>
+    <button class="tab" onclick="switchTab('spells',this)">Spell Lists</button>
+    <button class="tab" onclick="switchTab('equip',this)">Equipment</button>
+  </div>
+  <div id="tab-npc" class="layout">
+    <div class="ctrl">
+      <div><label class="clbl">Class</label><select class="csel" id="cls-sel" onchange="onClassChange()"><option value="">— Select class —</option></select></div>
+      <div><label class="clbl">Race</label><select class="csel" id="race-sel" onchange="onRaceChange()"></select></div>
+      <div>
+        <label class="clbl">Level</label>
+        <div class="lvl-row">
+          <button class="lvl-btn" onclick="changeLevel(-1)">−</button>
+          <span class="lvl-val" id="lvl-display">1</span>
+          <button class="lvl-btn" onclick="changeLevel(1)">+</button>
+        </div>
+      </div>
+      <hr class="divider">
+      <button class="gen-btn" id="gen-btn" onclick="generateNPC()" disabled>✦ Generate NPC ✦</button>
+      <button class="prt-btn" id="prt-npc" onclick="window.print()" style="display:none">⎙ Print / Save PDF</button>
+      <hr class="divider">
+      <div class="cls-hint" id="cls-hint"></div>
+    </div>
+    <div class="card-area" id="npc-out"><div class="empty"><div class="empty-ico">⚔</div><p>Generate an NPC to begin</p></div></div>
+  </div>
+  <div id="tab-mc" class="layout" style="display:none">
+    <div class="ctrl">
+      <div><label class="clbl">Unit Name</label><input class="cinp" id="mc-name" placeholder="e.g. Vakka's Bane"></div>
+      <div><label class="clbl">Total Troops</label><input class="cinp" type="number" id="mc-troops" value="100" min="1"></div>
+      <div><label class="clbl">Hit Dice (per member)</label><input class="cinp" type="number" id="mc-hd" value="1" min="0.5" step="0.5"></div>
+      <div>
+        <label class="clbl">Armour Class</label>
+        <input class="cinp" type="number" id="mc-ac" value="7" min="0" max="10" oninput="updateFootHint()">
+        <div id="foot-hint" style="font-size:11px;color:var(--parchment-deep);margin-top:3px">→ Light Foot</div>
+      </div>
+      <div>
+        <label class="clbl">Combat Move Rate</label>
+        <input class="cinp" type="number" id="mc-move" value="120" min="10" step="10" oninput="updateMoveHint()">
+        <div id="move-hint" style="font-size:11px;color:var(--parchment-deep);margin-top:3px">→ Movement 12</div>
+      </div>
+      <div><label class="clbl">Damage (single member)</label><input class="cinp" id="mc-dmg" value="1d8"></div>
+      <div><label class="clbl">Mount Type</label>
+        <select class="csel" id="mc-mount">
+          <option value="None">None (foot)</option>
+          <option value="Light Small">Light Small</option><option value="Light Medium">Light Medium</option>
+          <option value="Light Large">Light Large</option><option value="Heavy Small">Heavy Small</option>
+          <option value="Heavy Medium">Heavy Medium</option><option value="Heavy Large">Heavy Large</option>
+        </select>
+      </div>
+      <div><label class="clbl">Cohesion</label>
+        <select class="csel" id="mc-cohesion">
+          <option>Green</option><option>Shaken</option><option selected>Steady</option><option>Veteran</option><option>Elite</option>
+        </select>
+      </div>
+      <div><label class="clbl">Abilities</label><div class="chk-grp" id="mc-abilities"></div></div>
+      <hr class="divider">
+      <button class="gen-btn" onclick="buildMCUnit()">✦ Generate Unit Card ✦</button>
+      <button class="prt-btn" id="prt-mc" onclick="window.print()" style="display:none">⎙ Print / Save PDF</button>
+    </div>
+    <div class="card-area" id="mc-out"><div class="empty"><div class="empty-ico">⚔</div><p>Build a unit to generate its stat block</p></div></div>
+  </div>
+
+  <!-- SPELL LISTS TAB -->
+  <div id="tab-spells" style="display:none;padding:28px;background:#12100e">
+    <div id="spells-content"></div>
+  </div>
+  <!-- EQUIPMENT TAB -->
+  <div id="tab-equip" style="display:none;padding:28px;background:#12100e">
+    <div id="equip-content"></div>
+  </div>
+</div>
+<script>
+const GD = {"meta":{"version":7,"system":"Old-School Essentials (custom campaign \u2014 Middle Sea)","notes":"THAC0-based. Multiclassing supported. Weapon proficiencies captured. Languages campaign-custom TBD. Custom weapons TBD. Magical item chances TBD.","pending":["Campaign languages list","Magical item chance tables by class/level","Multiclassing rules"]},"weaponProficiency":{"source":"Batch 3 \u2014 OSE Advanced Fantasy","categories":{"martial":{"description":"THAC0 and saves improve every 3 levels","examples":["Knight","Fighter"],"initialProficiencies":4,"nonProficiencyPenalty":-2,"canSpecialize":true},"semiMartial":{"description":"THAC0 and saves improve every 4 levels","examples":["Acrobat"],"initialProficiencies":3,"nonProficiencyPenalty":-3,"canSpecialize":false},"nonMartial":{"description":"THAC0 and saves improve every 5 levels","examples":["Illusionist"],"initialProficiencies":1,"nonProficiencyPenalty":-5,"canSpecialize":false}},"gainingProficiencies":"Each time THAC0 and saving throws improve, gain 1 additional weapon proficiency","choosingProficiencies":"Must be chosen from weapons usable by class (and race if advanced creation used)","weaponSpecialization":{"whoCanSpecialize":"Martial characters only","cost":"2 proficiency slots for 1 weapon type","effect":"+1 to attack and damage rolls with that weapon","example":"1st level martial character: normally 4 proficiencies. If specializing, only 3 weapons total (specialized weapon uses 2 slots = 3 total weapons known)"},"nonProficientNote":"Referee may allow class/race restricted weapons with non-proficiency penalty applied"},"racialAbilityModifiers":{"source":"Batch 3 \u2014 race reference pages","AquaticElf":{"INT":1,"WIS":-1},"Merfolk":{"INT":-1,"DEX":1},"Satyr":{"DEX":1,"STR":-1},"Triton":{"INT":1,"WIS":-1},"Drow":{"CON":-1,"DEX":1},"Duergar":{"CHA":-1,"CON":1},"HalfOrc":{"CHA":-2,"CON":1,"STR":1},"WoodElf":{"CHA":-1,"WIS":1},"PhaseElf":{"CON":-1,"DEX":1},"Gnome":{},"HalfElf":{},"Human":{},"Dragonborn":{},"Goblin":{"DEX":1,"STR":-1},"Gargantua":{"INT":-1,"STR":1},"Mutoid":{},"Tiefling":{"DEX":1,"WIS":-1},"Mycelian":{"DEX":-1,"WIS":1}},"availableClassesAndMaxLevels":{"source":"Batch 3 \u2014 Available Classes and Max Levels pages","note":"** = both a race and a demihuman class. Classes marked (CC #N) come from Campaign Compendium issues. Classes marked (Demonic Grimoire) from that supplement.","masterClassList":["acolyte (CC#1)","acrobat","assassin","barbarian","bard","beast master (CC#3)","chaos knight (Demonic Grimoire)","cleric","dragonborn**","drow**","druid","duergar**","dwarf**","elf**","fighter","gnome**","goblin** (CC#1)","half-elf**","halfling**","half-orc**","illusionist","kineticist (CC#1)","knight","mage (CC#1)","magic-user","mutoid** (CC#3)","paladin","ranger","svirnfeblin**","thief","tiefling** (CC#3)"],"newClassesForRaces":{"AquaticElf":{"previousClasses":"all standard elf classes","newClasses":{"Acolyte":12,"BeastMaster":12,"Cleric":11,"Druid":12,"Fighter":12,"Mage":11,"MagicUser":11,"Sorcerer":12}},"Drow":{"abilityModifiers":{"CON":-1,"DEX":1},"requirements":{"INT":9},"languages":["Alignment","Common","Deepcommon","Elvish","Gnomish"],"classes":{"Acrobat":10,"Assassin":10,"Cleric":11,"Fighter":7,"Knight":9,"MagicUser":9,"Ranger":9,"Thief":11,"Artificer":8,"Monk":7,"Ninja":12,"Sorcerer":11},"special":["Detect secret doors: 2-in-6 when actively searching","Immunity to ghoul paralysis","Infravision 90'","Innate magic: darkness 1/day at 2nd level; detect magic 1/day at 4th level","Light sensitivity: -2 attack, -1 AC in bright light","Listening at doors: 2-in-6"]},"Duergar":{"abilityModifiers":{"CHA":-1,"CON":1},"requirements":{"CON":9,"INT":9},"languages":["Alignment","Common","Deepcommon","Dwarvish","Gnomish","Goblin","Kobold"],"classes":{"Assassin":9,"Cleric":8,"Fighter":9,"Thief":9,"Artificer":9,"Runegraver":9,"Sorcerer":7},"special":["Detect construction tricks: 2-in-6 when searching","Detect room traps: 2-in-6 when searching","Infravision 90'","Light sensitivity: -2 attack, -1 AC in bright light","Listening at doors: 2-in-6","Resilience: CON-based bonus to saves vs paralysis, poison, spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Stealth: 3-in-6 move silently underground"]},"Dragonborn":{"abilityModifiers":{},"requirements":{"CON":9,"INT":9},"languages":["Alignment","Common","Dragon"],"classes":{"Assassin":7,"Cleric":8,"Fighter":10,"Knight":10,"Illusionist":6,"Paladin":8,"MagicUser":8,"Thief":6,"Monk":7,"Ninja":7,"Runegraver":7,"Samurai":10,"Sorcerer":8},"special":["Breath weapon (race): 1x/day; damage = half current HP (rounded up); save vs breath for half; shape/damage per Draconic Bloodline table","Draconic Bloodline: roll d10 \u2014 1-2 Black/Acid/Line, 3-4 Blue/Lightning/Line, 5-6 Green/Poison/Cloud, 7-8 Red/Fire/Cone, 9-10 White/Cold/Cone; Cloud 10'x15', Cone 15'x20', Line 5'x30'","Draconic resistance: +2 saves vs damage type of own breath weapon","Dragon affinity: +1 reaction rolls with dragons","Dragon-affecting magic: affected by spells/items targeting dragons","Scales: natural +1 bonus to Armour Class"]},"Dwarf":{"newClasses":{"Artificer":11,"Runegraver":12}},"Elf":{"newClasses":{"Artificer":7,"Monk":12,"Ninja":10,"Runegraver":8,"Samurai":10,"Sorcerer":11}},"Gnome":{"abilityModifiers":{},"requirements":{"CON":9,"INT":9},"languages":["Alignment","Common","Dwarvish","Gnomish","Kobold","secret language of burrowing mammals"],"classes":{"Assassin":6,"Cleric":7,"Fighter":6,"Illusionist":7,"Thief":8,"Artificer":14,"Sorcerer":6},"special":["Defensive bonus: +2 AC vs large opponents (greater than human-sized)","Detect construction tricks: 2-in-6 when searching","Infravision 90'","Listening at doors: 2-in-6","Magic resistance: CON-based bonus to saves vs spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Speak with burrowing mammals: knows the secret language of such creatures","Size: small; armour must be tailored; no longbows or two-handed swords"]},"Goblin":{"abilityModifiers":{"DEX":1,"STR":-1},"requirements":{"DEX":9},"languages":["Alignment","Common","Goblin","language of wolves"],"classes":{"Acrobat":7,"Assassin":8,"Cleric":6,"Fighter":8,"MagicUser":6,"Thief":8,"Artificer":7,"Sorcerer":6},"special":["Defensive bonus: +2 AC vs large opponents (greater than human-sized)","Detect construction tricks: 2-in-6 when searching","Infravision 60'","Resilience: CON-based bonus to saves vs poison, spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Stealth: 3-in-6 move silently underground","Wolf affinity: can speak to wolves (incl. dire wolves); +1 reaction rolls with wolves; on reaction 9+ wolf consents to being ridden as mount","Size: small; armour must be tailored; no longbows or two-handed swords","At 8th level: establish stronghold (above or below ground); attract 2d6 goblins from own clan; may only hire goblin mercenaries"]},"HalfElf":{"abilityModifiers":{},"requirements":{"CHA":9,"CON":9},"languages":["Alignment","Common","Elvish"],"classes":{"Acrobat":12,"Assassin":11,"Bard":12,"Cleric":5,"Druid":12,"Fighter":8,"Knight":12,"MagicUser":8,"Paladin":12,"Ranger":8,"Thief":12,"Artificer":8,"Monk":11,"Ninja":12,"Runegraver":8,"Samurai":12,"Sorcerer":8},"special":["Detect secret doors: 2-in-6 when actively searching","Infravision 60'"]},"Halfling":{"newClasses":{"Artificer":6,"Monk":6,"Ninja":8}},"HalfOrc":{"abilityModifiers":{"CHA":-2,"CON":1,"STR":1},"requirements":{},"languages":["Alignment","Common","Orcish"],"classes":{"Acrobat":8,"Assassin":8,"Cleric":4,"Fighter":10,"Thief":8,"Monk":6,"Ninja":8,"Runegraver":9},"special":["Infravision 60'"]},"Merfolk":{"previousClasses":"all standard merfolk classes","newClasses":{"Bard":6,"Cleric":10,"Druid":9,"Fighter":11}},"Mutoid":{"abilityModifiers":{},"requirements":{},"languages":["Alignment","Common"],"classes":{"Assassin":5,"Cleric":6,"Fighter":7,"Illusionist":6,"Thief":9,"Artificer":9,"Sorcerer":6},"special":["Mutations: roll twice on d8 Mutations table at creation (re-roll duplicates); two attack mutations may both be used each round","Mutations table: 1-Beast ears (3-in-6 hear noises), 2-Beast eyes (infravision 60'), 3-Clawed hand (unarmed 1d6), 4-Gills (breathe underwater), 5-Pincer (unarmed 1d3; locks on for 1d3/round; save vs paralysis to escape), 6-Scales (+2 AC), 7-Spring legs (jump 30' forward, +1 attack; impaling weapon = charge, double damage), 8-Sticky tongue (grab object 15' away; bite melee attack 1d3)"]},"Satyr":{"previousClasses":"all standard satyr classes","newClasses":{"Acrobat":8,"Assassin":10,"Bard":13,"Druid":12,"Fighter":8,"Illusionist":7,"Kineticist":9,"Mage":6,"MagicUser":6,"Ranger":8,"Thief":12}},"Svirnfeblin":{"newClasses":{"Ninja":8,"Sorcerer":6}},"Tiefling":{"abilityModifiers":{"DEX":1,"WIS":-1},"requirements":{"INT":9},"languages":["Alignment","Common"],"classes":{"Acrobat":10,"Assassin":10,"Bard":6,"Fighter":8,"Illusionist":10,"MagicUser":10,"Ranger":6,"Thief":10,"Ninja":9,"Sorcerer":12},"special":["Fiendish Heritage: roll twice on Fiendish Appearance table and twice on Fiendish Gifts table (re-roll duplicates)","Fiendish Appearance (d10): 1-3/6 digits per hand, 2-Black/red eyes, 3-Fangs/needle teeth, 4-Furry/feathered skin, 5-Forked tongue, 6-Goat hooves, 7-Long thin tail, 8-Scaly/ridged skin, 9-Skin tinted red/green/blue, 10-Small horns","Fiendish Gifts (d10): 1-Darkness 1/day, 2-Detect invisible 1/day, 3-Detect magic 1/day, 4-Magic missile 1/day, 5-Mirror image 1/day, 6-Ventriloquism 1/day, 7-Cold resistance (half damage), 8-Fire resistance (half damage), 9-+2 saves vs paralysis, 10-+2 saves vs poison","Holy water vulnerability: vulnerable to damage from holy water","Infravision 60'"]},"Triton":{"previousClasses":"all standard triton classes","newClasses":{"Cleric":12,"Fighter":10,"MagicUser":12}},"WoodElf":{"abilityModifiers":{"CHA":-1,"WIS":1},"requirements":{"DEX":9,"INT":9},"languages":["Alignment","Common","Elvish","Bugbear","Dryad","Gnoll"],"classes":{"Acrobat":10,"Assassin":8,"Druid":10,"Fighter":7,"MagicUser":7,"Ranger":11,"Thief":10},"special":["Awareness: surprised only on 1-in-6","Detect secret doors: 2-in-6 when actively searching","Hiding: 90% in woods or undergrowth","Immunity to ghoul paralysis","Infravision 60'","Listening at doors: 2-in-6","Missile attack bonus: +1 to attack rolls with missile weapons","Divine magic: druid spell list","At 9th level: construct treetop stronghold; forest animals within 5 miles become friendly"]},"PhaseElf":{"abilityModifiers":{"CON":-1,"DEX":1},"requirements":{"INT":9},"languages":["Alignment","Common","Elvish","Doppelg\u00e4nger","Dragon","Pixie"],"classes":{"Acrobat":10,"Assassin":10,"Fighter":7,"Illusionist":11,"Knight":10,"MagicUser":11,"Ranger":10,"Thief":10},"special":["Dual Persona: fighter phase and magic-user phase; may phase once per day upon waking","THAC0 and saves: use values for active phase's class","Class abilities: only active phase's abilities apply (incl. spellcasting and allowed weapons/armour)","Hit points: single pool; roll HD of both classes and divide by two at creation","Detect secret doors: 2-in-6 when actively searching","Immunity to ghoul paralysis","Infravision 60'","Listening at doors: 2-in-6","At 9th level: bring extra-dimensional space into being via magical doorway"]},"Human":{"abilityModifiers":{},"requirements":{},"languages":["Alignment","Common"],"classes":{"allNonDemihumanClasses":"unlimited"},"special":["No racial abilities; unlimited class and level advancement","Optional racial abilities: +1 CHA, +1 CON; Blessed (roll HP twice, take best); Decisiveness (act first on tied initiative, +1 initiative); Leadership (retainers/mercenaries +1 loyalty/morale)"]},"Svirfneblin":{"abilityModifiers":{},"requirements":{"CON":9},"languages":["Alignment","Common","Deepcommon","Gnomish","Dwarvish","Kobold","language of earth elementals"],"classes":{"Assassin":8,"Cleric":7,"Fighter":6,"Illusionist":7,"Thief":8,"Ninja":8,"Sorcerer":6},"special":["Blend into stone: 4-in-6 (gloomy) or 2-in-6 (well-lit) to go unnoticed in natural/carved stone while motionless and silent","Defensive bonus: +2 AC vs large opponents (greater than human-sized)","Detect construction tricks: 2-in-6 when searching","Illusion resistance: +2 to all saves vs illusions","Infravision 90'","Light sensitivity: -2 attack, -1 AC in bright light","Listening at doors: 2-in-6","Speak with earth elementals","Stone murmurs: 2-in-6 (after 1 turn with ear to stone) to divine secrets of nearby stone","Using magic items: can use elemental earth summoning/control items (including caster-only items)","Size: small; armour must be tailored; no longbows or two-handed swords","At 8th level: build subterranean stronghold; 1d3 16 HD earth elementals live nearby and serve as friendly guardians"]},"Gargantua":{"abilityModifiers":{"INT":-1,"STR":1},"requirements":{"CON":9,"STR":9},"languages":["Alignment","Common"],"classes":{"Assassin":6,"Barbarian":8,"Cleric":8,"Fighter":10,"Thief":6},"special":["Combat: any size-appropriate armour (must be tailored to large size); any weapons","Two-handed melee weapons: can wield any two-handed melee weapon (e.g. battle axe) with only one hand","Open doors: treated as next highest STR category when determining open doors chance","Resilience: CON-based bonus to saves vs poison, spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Rock throwing: 1d6 damage; ranges 5'-50' / 51'-100' / 101'-150'","Size: large (about 7.5' tall, 550 lbs); armour must be tailored","At 9th level: option to create stronghold attracting gargantua community (near humans or in wilderness)"]},"Mycelian":{"abilityModifiers":{"DEX":-1,"WIS":1},"requirements":{"CON":9},"languages":["Alignment","Common","Deepcommon"],"classes":{"Assassin":4,"Cleric":5,"Druid":5,"Fighter":6,"Illusionist":4,"Thief":4},"special":["Fungal spores: from 3rd level, 1/day emit spores at single living target within 20' (human/demihuman any level or humanoid monster up to 4+1 HD); save vs poison or completely passive for 1 round/level (unable to act or move)","Infravision 60'","Light sensitivity: -2 attack, -1 AC in bright light","Rest and sustenance: no eating/sleeping; require 8 hours/day in contact with moist earth; missing this = lose 1 HP/day until fulfilled","Telepathic communication: mouthless; communicate telepathically with any sentient creature within 120' they can perceive; can converse in any language they know"]}}},"classes":{"Cleric":{"source":"OSE Classic Fantasy (built-in)","type":"Standard","martialCategory":"semiMartial","hd":"d6","maxLevel":14,"armor":["Any","Shields"],"weapons":["Blunt weapons only"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[11,12,14,16,15],[11,12,14,16,15],[9,10,12,14,12],[9,10,12,14,12],[6,7,9,11,9],[6,7,9,11,9],[3,5,7,8,7],[3,5,7,8,7],[2,3,5,6,4],[2,3,5,6,4],[2,3,5,6,4],[2,2,4,4,2],[2,2,4,4,2],[2,2,4,4,2]],"spellsPerDay":[[],[1],[2],[2,1],[3,2],[3,2,1],[3,3,2],[3,3,2,1],[3,3,3,2],[4,4,3,2,1],[4,4,3,3,2],[5,4,4,3,2],[5,5,4,3,3],[6,5,5,4,3]],"special":["Turn Undead"],"alignments":["Lawful","Neutral"]},"Dwarf":{"source":"Batch 4 confirmed \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"martial","hd":"d8","maxLevel":12,"armor":["Any","Shields"],"weapons":["Small or normal sized (no longbows, no two-handed swords)"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12],"saves":[[8,9,10,13,12],[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8],[2,3,4,4,6],[2,3,4,4,6],[2,3,4,4,6]],"special":["Infravision 60'","Detect construction tricks 2-in-6","Detect room traps 2-in-6","Hear noise 2-in-6","Never lost underground","+4 saves vs magic & poison","Surprised only 1-in-6"],"alignments":["Lawful","Neutral"],"languages":["Alignment","Common","Dwarvish","Gnomish","Goblin","Kobold"]},"Elf":{"source":"OSE Classic Fantasy (built-in)","type":"Demihuman","martialCategory":"martial","hd":"d6","maxLevel":10,"armor":["Any","Shields"],"weapons":["Any"],"thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,11,10],[8,9,9,11,10],[6,7,8,9,8],[6,7,8,9,8],[4,5,6,7,6],[4,5,6,7,6]],"spellsPerDay":[[],[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2]],"special":["Infravision 60'","Detect secret doors 2-in-6","Immune to ghoul paralysis","Hear noise 2-in-6","Move silently in non-metal armor"],"alignments":["Lawful","Neutral","Chaotic"]},"Fighter":{"source":"OSE Classic Fantasy (built-in)","type":"Standard","martialCategory":"martial","hd":"d8","maxLevel":14,"armor":["Any","Shields"],"weapons":["Any"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,10,12],[8,9,10,10,12],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,5,8],[4,5,6,5,8],[4,5,6,5,8],[3,4,4,4,6],[3,4,4,4,6],[3,4,4,4,6]],"special":["Multiple attacks vs <1HD foes (1 per level per round)"],"alignments":["Lawful","Neutral","Chaotic"]},"Halfling":{"source":"OSE Classic Fantasy (built-in)","type":"Demihuman","martialCategory":"semiMartial","hd":"d6","maxLevel":8,"armor":["Leather","Shields"],"weapons":["Any (small)"],"thac0":[19,19,19,17,17,17,14,14],"saves":[[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8],[4,5,6,7,8],[2,3,4,4,6],[2,3,4,4,6]],"special":["Infravision 30'","Hear noise 2-in-6","Hide in woods 90% or shadows 2-in-6","Initiative +1","Missile attack +1","+4 saves vs magic","Surprised only 1-in-6"],"alignments":["Lawful","Neutral"]},"Magic-User":{"source":"OSE Classic Fantasy (built-in)","type":"Standard","martialCategory":"nonMartial","hd":"d4","maxLevel":14,"armor":["None"],"weapons":["Dagger","Staff"],"thac0":[19,19,19,19,19,19,17,17,17,17,17,14,14,14],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[9,10,9,12,10],[9,10,9,12,10],[9,10,9,12,10],[7,8,7,10,8],[7,8,7,10,8],[7,8,7,10,8],[5,6,5,8,6],[5,6,5,8,6]],"spellsPerDay":[[],[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2],[4,3,3,2,1],[4,4,3,3,2],[4,4,4,3,2,1],[5,5,4,4,3,2]],"alignments":["Lawful","Neutral","Chaotic"]},"Thief":{"source":"OSE Classic Fantasy (built-in)","type":"Standard","martialCategory":"semiMartial","hd":"d4","maxLevel":14,"armor":["Leather"],"weapons":["Any"],"thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,11],[10,11,9,12,11],[8,9,7,10,9],[8,9,7,10,9],[6,7,5,8,7],[6,7,5,8,7],[4,5,3,6,5],[4,5,3,6,5],[2,3,1,4,3],[2,3,1,4,3]],"special":["Backstab (surprise: x2 damage scaling)","Climb sheer surfaces","Find/remove traps","Hear noise","Hide in shadows","Move silently","Open locks","Pick pockets","Read languages (level 4+)"],"alignments":["Neutral","Chaotic"]},"Acrobat":{"source":"Batch 3 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"semiMartial","hd":"d4","maxLevel":14,"requirements":{},"primeRequisite":["DEX"],"note":"May not lower STR during character creation. Encumbrance: evasion/falling/jumping/tightrope walking fail if movement <90'(30').","armor":["Leather (no shields)"],"weapons":["Missile weapons","Dagger","Sword","Short sword","Pole arm","Spear","Staff"],"languages":["Alignment","Common"],"thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"acrobatSkills":[{"level":1,"CS":87,"FA":25,"HS":10,"MS":20,"TW":60},{"level":2,"CS":88,"FA":25,"HS":15,"MS":25,"TW":65},{"level":3,"CS":89,"FA":25,"HS":20,"MS":30,"TW":70},{"level":4,"CS":90,"FA":33,"HS":25,"MS":35,"TW":75},{"level":5,"CS":91,"FA":33,"HS":30,"MS":40,"TW":80},{"level":6,"CS":92,"FA":33,"HS":33,"MS":43,"TW":85},{"level":7,"CS":93,"FA":33,"HS":36,"MS":46,"TW":90},{"level":8,"CS":94,"FA":50,"HS":40,"MS":50,"TW":95},{"level":9,"CS":95,"FA":50,"HS":43,"MS":53,"TW":99},{"level":10,"CS":96,"FA":50,"HS":46,"MS":56,"TW":99},{"level":11,"CS":97,"FA":50,"HS":50,"MS":60,"TW":99},{"level":12,"CS":98,"FA":66,"HS":53,"MS":63,"TW":99},{"level":13,"CS":99,"FA":66,"HS":56,"MS":66,"TW":99},{"level":14,"CS":99,"FA":75,"HS":60,"MS":70,"TW":99}],"acrobatSkillKeys":{"CS":"Climb sheer surfaces (roll per 100' climbed, fail = fall at halfway)","FA":"Falling (no damage first 10', further damage reduced by listed %)","HS":"Hide in shadows (must be motionless)","MS":"Move silently","TW":"Tightrope walking (roll every 60', wind may reduce by up to 20%, balance pole +10%)"},"special":["Evasion: tumbling negates opponent's usual +2 to hit when acrobat retreats from melee","Jumping: 20' run-up = jump 10' pit/chasm (20' with pole); pole = jump 10' wall or onto 10' ledge","Tumbling Attack: using falling or jumping, double damage if hit; +4 to hit vs unaware opponent","At 9th level: establish training school, attract 2d6 1st-level apprentices"],"alignments":["Lawful","Neutral","Chaotic"]},"AquaticElf":{"source":"Custom Batch 1","type":"Demihuman","martialCategory":"martial","hd":"d6","maxLevel":10,"requirements":{"DEX":9,"INT":9},"primeRequisite":["DEX","INT"],"abilityModifiers":{"INT":1,"WIS":-1},"xpBonus":{"5pct":"DEX 13 and INT 13","10pct":"DEX 13 and INT 16"},"armor":["Coral armor","Shields"],"weapons":"Any appropriate to underwater (tridents, spears, daggers, etc.)","languages":["Aquan","Common","Elvish","Merrow","Sahaugin","Triton"],"thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,10,10],[8,9,9,10,10],[8,9,9,10,10],[6,7,8,8,8]],"spellsPerDay":[[],[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"special":["Arcane magic (as Elf)","Concealment: 90% motionless, 2-in-6+DEX bonus moving","Dolphin Song: communicate with dolphins/whales 500', +2 vs Charm Aquatic Creatures","Superior Swimmer: full movement rate, DEX AC bonus doubles","Transmedium: must submerge 6hrs/24hrs or 1hp damage (unhealed until submerged)"],"alignments":["Lawful","Neutral","Chaotic"]},"Merfolk":{"source":"Custom Batch 1","type":"Demihuman","martialCategory":"semiMartial","hd":"d8","maxLevel":9,"requirements":{"DEX":9},"primeRequisite":["CHA"],"abilityModifiers":{"INT":-1,"DEX":1},"armor":["Coral armor (no shields)"],"weapons":"Any appropriate to underwater (tridents, spears, daggers, etc.)","languages":["Aquan","Common","Elvish","Merrow","Sahaugin","Triton"],"thac0":[19,19,19,19,17,17,17,17,14],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10]],"hdCount":[1,2,3,4,5,6,7,8,9],"hdBonus":[0,0,0,0,0,0,0,0,0],"special":["Aquatic Speed: +2 initiative underwater, 120'(40') underwater movement","Charm Aquatic Creatures: 1/day charm monster vs aquatic creatures only","Dolphin Song: communicate with dolphins/whales 500', +2 on Charm vs dolphins/whales","Transmedium: must submerge 6hrs/24hrs or 1hp damage (unhealed until submerged)"],"alignments":["Lawful","Neutral","Chaotic"]},"Artificer":{"source":"Custom Batch 1","type":"Standard","martialCategory":"nonMartial","hd":"d4","maxLevel":14,"requirements":{"INT":9},"primeRequisite":["INT"],"armor":["Leather","Shields"],"weapons":["Crossbow","Dagger"],"languages":["Common","Nationality"],"note":"Gnomes may also take Artificer as a class.","thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"gadgetProgression":[{"level":1,"gadgetPowers":2,"gadgetPoints":1},{"level":2,"gadgetPowers":3,"gadgetPoints":2},{"level":3,"gadgetPowers":4,"gadgetPoints":3},{"level":4,"gadgetPowers":5,"gadgetPoints":4},{"level":5,"gadgetPowers":6,"gadgetPoints":5},{"level":6,"gadgetPowers":8,"gadgetPoints":6},{"level":7,"gadgetPowers":9,"gadgetPoints":8},{"level":8,"gadgetPowers":10,"gadgetPoints":12},{"level":9,"gadgetPowers":11,"gadgetPoints":14},{"level":10,"gadgetPowers":12,"gadgetPoints":16},{"level":11,"gadgetPowers":15,"gadgetPoints":18},{"level":12,"gadgetPowers":16,"gadgetPoints":20},{"level":13,"gadgetPowers":17,"gadgetPoints":22},{"level":14,"gadgetPowers":18,"gadgetPoints":24}],"overcharge":{"burnoutBase":50,"burnoutReductionPerLevelBeyond1":2,"repairTime":"8 hours"},"special":["Alchemy & Artifice: gadget powers (see gadgetProgression)","Jury-Rigging: 1/level/day improvised device (1d4 hours)","Trinkets: craft saleable curiosities"],"alignments":["Lawful","Neutral","Chaotic"]},"Monk":{"source":"Custom Batch 1","type":"Standard","martialCategory":"semiMartial","hd":"d4","maxLevel":14,"requirements":{"DEX":9,"STR":9},"primeRequisite":["DEX"],"alignment":"Lawful only","armor":"None (no shields)","weapons":"Any with monk weapon quality","languages":["Common","Nationality"],"thac0":[19,19,19,19,17,17,17,17,14,14,14,12,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"progression":[{"level":1,"maneuvers":["A","B"],"attacks":1,"damage":"1d2","naturalAC":9},{"level":2,"maneuvers":["C"],"attacks":1,"damage":"1d3","naturalAC":9},{"level":3,"maneuvers":["D"],"attacks":1,"damage":"1d4","naturalAC":8},{"level":4,"maneuvers":["E"],"attacks":1,"damage":"1d6","naturalAC":8},{"level":5,"maneuvers":["F","G"],"attacks":2,"damage":"1d8","naturalAC":7},{"level":6,"maneuvers":["H"],"attacks":2,"damage":"2d4","naturalAC":7},{"level":7,"maneuvers":["I"],"attacks":2,"damage":"1d10","naturalAC":6},{"level":8,"maneuvers":["J"],"attacks":2,"damage":"1d12","naturalAC":6},{"level":9,"maneuvers":["K"],"attacks":3,"damage":"1d12","naturalAC":5},{"level":10,"maneuvers":["L"],"attacks":3,"damage":"2d6","naturalAC":5},{"level":11,"maneuvers":["M"],"attacks":3,"damage":"2d6","naturalAC":4},{"level":12,"maneuvers":["N"],"attacks":3,"damage":"2d6","naturalAC":4},{"level":13,"maneuvers":["O"],"attacks":4,"damage":"2d6","naturalAC":3},{"level":14,"maneuvers":["P"],"attacks":4,"damage":"2d6","naturalAC":3}],"alignments":["Lawful"]},"Ninja":{"source":"Custom Batch 1","type":"Standard","martialCategory":"semiMartial","hd":"d4","maxLevel":14,"requirements":{"INT":9},"primeRequisite":["DEX"],"alignment":"Cannot be Lawful","armor":["Leather (no shields)"],"weapons":"Any with ninja weapon quality","languages":["Common","Nationality"],"thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"ninjaSkills":[{"level":1,"HP":10,"HS":20,"MS":10,"TW":45},{"level":2,"HP":15,"HS":25,"MS":15,"TW":50},{"level":3,"HP":20,"HS":30,"MS":20,"TW":55},{"level":4,"HP":25,"HS":36,"MS":25,"TW":60},{"level":5,"HP":30,"HS":45,"MS":30,"TW":65},{"level":6,"HP":36,"HS":55,"MS":33,"TW":70},{"level":7,"HP":45,"HS":65,"MS":36,"TW":75},{"level":8,"HP":55,"HS":75,"MS":40,"TW":80},{"level":9,"HP":65,"HS":85,"MS":43,"TW":80},{"level":10,"HP":70,"HS":90,"MS":46,"TW":80},{"level":11,"HP":70,"HS":95,"MS":50,"TW":80},{"level":12,"HP":70,"HS":99,"MS":53,"TW":80},{"level":13,"HP":70,"HS":99,"MS":56,"TW":80},{"level":14,"HP":70,"HS":99,"MS":60,"TW":80}],"special":["Backstab: +2 to hit from behind unaware, double damage","Disguise: 2% detection chance","Martial Arts: 1d4 unarmed damage","Retreating Attack: free missile attack when moving away at half speed","Sniper: +1 to missile attacks","Vanish: hide in plain sight check in combat to escape"],"alignments":["Neutral","Chaotic"]},"Runegraver":{"source":"Custom Batch 2","type":"Standard","martialCategory":"martial","hd":"d6","maxLevel":14,"requirements":{},"primeRequisite":["STR","WIS"],"xpBonus":{"5pct":"STR 13 and WIS 13","10pct":"WIS 16 and STR 13"},"armor":["Any","Shields"],"weapons":["Any"],"languages":["Common","Nationality"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[6,7,9,11,9],[6,7,9,11,9],[6,7,9,11,9],[6,7,9,11,9],[3,5,7,8,7],[3,5,7,8,7]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"runeSpellsPerDay":[[],[1],[2],[2,1],[2,2],[2,2,1,1],[2,2,2,1],[3,2,2,1,1],[3,3,2,2,1],[3,3,3,2,2],[4,4,3,3,2],[4,4,4,3,3],[5,5,4,4,3],[5,5,5,4,4],[6,5,5,5,4]],"spellSource":"Magic-User spell list","special":["Runegravin: carve rune spells on bone/metal/stone/wood; rune carries spell (can give to ally); 10 min to prepare; max prepared = level; cannot exceed max in 24hrs","Rune Reading: 1/day throw prepared runes; for 1 turn per level choose one: +1 AC, +2 saves, or +1 all attacks"],"alignments":["Lawful","Neutral","Chaotic"]},"Samurai":{"source":"Custom Batch 2","type":"Standard","martialCategory":"martial","hd":"d8","maxLevel":14,"requirements":{"DEX":9,"STR":9},"primeRequisite":["CON"],"armor":["Any (no shields)"],"weapons":["Any"],"languages":["Common","Nationality"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,10,12],[8,9,10,10,12],[8,9,10,10,12],[6,7,8,8,10],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,5,8],[4,5,6,5,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"progression":[{"level":1,"fearBonus":2,"katanaACBonus":0},{"level":2,"fearBonus":2,"katanaACBonus":1},{"level":3,"fearBonus":2,"katanaACBonus":1},{"level":4,"fearBonus":3,"katanaACBonus":1},{"level":5,"fearBonus":3,"katanaACBonus":2},{"level":6,"fearBonus":4,"katanaACBonus":2},{"level":7,"fearBonus":4,"katanaACBonus":2},{"level":8,"fearBonus":4,"katanaACBonus":2},{"level":9,"fearBonus":5,"katanaACBonus":3},{"level":10,"fearBonus":5,"katanaACBonus":3},{"level":11,"fearBonus":6,"katanaACBonus":3},{"level":12,"fearBonus":6,"katanaACBonus":3},{"level":13,"fearBonus":6,"katanaACBonus":4},{"level":14,"fearBonus":7,"katanaACBonus":4}],"special":["Fearless: save bonus vs fear by level","Katana Mastery: 1d10 two-handed, AC bonus while wielding","Kiai: 1/day STR 18 for 1 turn + stunned enemies within 10' (save vs paralysis)","Liege Lord: daimyo loyalty; betrayal = permanent -1 level","Riposte: 1/turn block + free attack while wielding katana","Whirlwind Attack: 1/day attack all adjacent while wielding katana"],"alignments":["Lawful","Neutral","Chaotic"]},"Satyr":{"source":"Custom Batch 2","type":"Demihuman","martialCategory":"semiMartial","hd":"d4","maxLevel":7,"requirements":{"CHA":9},"primeRequisite":["DEX"],"abilityModifiers":{"DEX":1,"STR":-1},"alignment":"Cannot be Lawful","armor":["Leather (tailored to small size)","Shields"],"weapons":"Any appropriate to size (no longbows, no two-handed swords)","languages":["Common","Nationality","Satyr"],"thac0":[19,19,19,17,17,17,14],"saves":[[8,9,10,13,12],[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8]],"hdCount":[1,2,3,4,5,6,7],"hdBonus":[0,0,0,0,0,0,0],"special":["+2 AC vs large opponents","Enchantment as bard class","Hiding: 90% in woods/undergrowth","Pick Pockets: as thief of same level"],"alignments":["Neutral","Chaotic"]},"Sorcerer":{"source":"Custom Batch 2","type":"Standard","martialCategory":"nonMartial","hd":"d4","maxLevel":14,"requirements":{"WIS":9},"primeRequisite":["CHA"],"armor":["None"],"weapons":["Dagger","Staff"],"languages":["Common","Nationality"],"thac0":[19,19,19,19,19,17,17,17,17,17,14,14,14,14],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,4,3,3,3,2],[4,4,4,4,3,3],[4,4,4,4,3,3]],"spells":{"1":["Animate Blood","Astrological Prediction","Black Blood","Breathe","Burning Hands","Eye of the Tiger","Fogbolt","Snake Arrow","Snuff the Blinding Flame","Summon Snakes","Trace the Blood Worm","Wall of Fog"],"2":["Alter Dreams","Become Swarm","Curse of Yig","Ground Rot","Hands of Death","Here Not There","Not This Hour","Psychometry","Red Sign of Skelos","Sign of Jhebbal Sag","The Dead Speak","Unnatural Strength"],"3":["Animal Ally","Cause Blindness or Deafness","Dance of the Cobras","Dark Wings","Evard's Black Tentacles","Horoscope","Life Drain","Summon Lyncanthrope","Sword of Skelos","Tash's Uncontrollable Hideous Laughter","Tathos's Grasping Tentacles","Weapon Curse"],"4":["Crawlers of the Mouth","Darkness Simulacrum","Derketa's Dhow","Desiccate","Domination","From Shadow to Shadow","Glimpse of the Sorcerer's Soul","Life Feast","Summon Fire Elemental","Unseen Serpents","Visions of Torment and Delight","Vomit Horror"],"5":["Awful Rite of the Werebeast","Bloodstars","Call the Great Snake","Control Lyncanthrope","Crushing Hand","Dark Slither","Deep Delve","Descent into Madness","Draw Forth the Heart","Implant Demonic Essence","Polymorph Others","Possession"],"6":["Arise the Eldritch Ooze","Call the Beast","Channel Demon","Dragonshape","Draw Forth the Soul","Form Demon","Horrid Wilting","Invocation of Xuthalla","Legion of the Dead","Spawn of the Black Heart","Tattoo of Power","Usurpation of the Soul"]},"alignments":["Lawful","Neutral","Chaotic"]},"Triton":{"source":"Custom Batch 2","type":"Demihuman","martialCategory":"semiMartial","hd":"d8","maxLevel":9,"requirements":{"DEX":9},"primeRequisite":["INT"],"abilityModifiers":{"INT":1,"WIS":-1},"armor":["Coral armor","Coral shields"],"weapons":"Any appropriate to underwater; +2 to attack with tridents","languages":["Aquan","Common"],"thac0":[19,19,19,19,17,17,17,17,14],"saves":[[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,10,10],[8,9,9,10,10],[8,9,9,10,10]],"hdCount":[1,2,3,4,5,6,7,8,9],"hdBonus":[0,0,0,0,0,0,0,0,0],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[2,2,2,1],[3,2,2,2],[3,3,3,2]],"special":["Aquatic Speed: +2 initiative, 120'(40') underwater","Arcane and Divine Magic: each new spell chosen as MU or Cleric spell","Trident Bonus: +2 to attack with tridents","Underwater Dwellers: cannot breathe air without magic; brought out of water = suffocate"],"alignments":["Lawful","Neutral","Chaotic"]},"Werebat":{"source":"Custom Batch 2","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":4,"thac0":[19,18,17,16],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14]],"hdCount":[1,2,3,4],"hdBonus":[0,0,0,0],"forms":["Human/demihuman","Giant vampire bat","Hybrid man-bat (flight 150'(50'))"],"progression":[{"level":1,"AC":8,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":7,"attacks":"1x bite (1d4), 2x claw (1d4)","special":["B"]},{"level":3,"AC":6,"attacks":"1x bite (1d6), 2x claw (1d4)","special":["C"]},{"level":4,"AC":5,"attacks":"1x bite (1d6), 2x claw (1d4)","special":["D"]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 giant vampire bats (1d4 rounds)"},"notes":"Normal vision + echolocation; must lose both sight AND hearing to be truly blind. Transformation: 1 turn per lycanthrope level intentionally.","alignments":["Neutral","Chaotic"]},"Werebear":{"source":"Custom Batch 2","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":6,"thac0":[19,18,17,16,15,14],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14]],"hdCount":[1,2,3,4,5,6],"hdBonus":[0,0,0,0,0,0],"forms":["Human/demihuman","Black bear","Hybrid bear-man (120'(40'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d6)","special":["A"]},{"level":2,"AC":6,"attacks":"1x bite (1d8), 2x claw (1d4)","special":["B"]},{"level":3,"AC":5,"attacks":"1x bite (1d8), 2x claw (2d4)","special":["C"]},{"level":4,"AC":4,"attacks":"1x bite (2d8), 2x claw (2d4)","special":["D"]},{"level":5,"AC":3,"attacks":"1x bite (2d8), 2x claw (2d4)","special":["E"]},{"level":6,"AC":2,"attacks":"1x bite (2d8), 2x claw (2d4)","special":[]}],"specialAbilityKeys":{"A":"Full Moon","B":"Night voluntary","C":"Day voluntary -2, 3x/day","D":"Summon 1d2 black bears","E":"Weapons in hybrid form"},"notes":"Bear Hug: both claws hit = 2d8 extra auto damage. Transformation: 1 turn per lycanthrope level.","alignments":["Lawful","Neutral"]},"Wereboar":{"source":"Custom Batch 2","type":"Lycanthrope","martialCategory":"martial","hd":"d8+1","maxLevel":4,"thac0":[18,17,16,15],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14]],"hdCount":[1,2,3,4],"hdBonus":[1,1,1,1],"forms":["Human/demihuman","Boar","Hybrid boar-man (150'(50'))"],"progression":[{"level":1,"AC":7,"attacks":"1x tusk/bite (1d4)","special":["A"]},{"level":2,"AC":6,"attacks":"1x tusk/bite (2d4)","special":["B"]},{"level":3,"AC":5,"attacks":"1x tusk/bite (2d6)","special":["C"]},{"level":4,"AC":4,"attacks":"1x tusk/bite (2d6)","special":["D","E"]}],"specialAbilityKeys":{"A":"Full Moon","B":"Night voluntary","C":"Day voluntary -2, 3x/day","D":"Summon 1d2 boars","E":"Weapons in hybrid form"},"notes":"Battle Rage: 1/day in human form, berserk for 1 round per level, +2 to hit.","alignments":["Neutral","Chaotic"]},"Werefox":{"source":"Custom Batch 2","type":"Lycanthrope","martialCategory":"semiMartial","hd":"d8","maxLevel":3,"thac0":[19,18,17],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16]],"hdCount":[1,2,3],"hdBonus":[0,0,0],"forms":["Human/demihuman","Fox (AC7 HD1 5hp 1x bite 1d4 THAC0 19 MV 180'(60'))","Hybrid fox-man (150'(50'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":7,"attacks":"1x bite (1d4)","special":["B"]},{"level":3,"AC":6,"attacks":"1x bite (1d6)","special":["C","D","E","F"]}],"specialAbilityKeys":{"A":"Full Moon","B":"Night voluntary","C":"Day voluntary -2, 3x/day","D":"Summon 1d2 foxes","E":"Weapons in hybrid form","F":"Charm 3x/day: save vs spells at -2 or charmed"},"alignments":["Neutral","Chaotic"]},"Werejaguar":{"source":"Custom Batch 2","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":5,"thac0":[19,18,17,16,15],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14]],"hdCount":[1,2,3,4,5],"hdBonus":[0,0,0,0,0],"forms":["Human/demihuman","Jaguar (AC4 HD4 2x claw 1d4 1x bite 1d10 THAC0 16 MV 120'(40'))","Hybrid jaguar-man (120'(40'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":7,"attacks":"1x bite (1d6)","special":["B"]},{"level":3,"AC":6,"attacks":"1x bite (1d6), 2x claw (1d3)","special":["C"]},{"level":4,"AC":5,"attacks":"1x bite (1d8), 2x claw (1d4)","special":["D"]},{"level":5,"AC":4,"attacks":"1x bite (1d10), 2x claw (1d4)","special":["E"]}],"specialAbilityKeys":{"A":"Full Moon","B":"Night voluntary","C":"Day voluntary -2, 3x/day","D":"Summon 1d2 great cats (max HD = lycanthrope level)","E":"Weapons in hybrid form"},"alignments":["Neutral","Chaotic"]},"Wererat":{"source":"Custom Batch 3","type":"Lycanthrope","martialCategory":"semiMartial","hd":"d8","maxLevel":3,"thac0":[19,18,17],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16]],"hdCount":[1,2,3],"hdBonus":[0,0,0],"forms":["Human/demihuman","Giant rat","Hybrid rat-man (120'(40'))"],"progression":[{"level":1,"AC":8,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":7,"attacks":"1x bite (1d4)","special":["B"]},{"level":3,"AC":7,"attacks":"1x bite (1d4)","special":["C","D","E"]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 giant rats (appear in 1d4 rounds)","E":"Weapons: may also use weapons in hybrid form"},"notes":"Transformation: 1 turn per lycanthrope level intentionally.","alignments":["Chaotic"]},"Wereshark":{"source":"Custom Batch 3","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":4,"thac0":[19,18,17,16],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14]],"hdCount":[1,2,3,4],"hdBonus":[0,0,0,0],"forms":["Human/demihuman","Bull shark","Hybrid shark-man (120'(40'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":6,"attacks":"1x bite (1d4)","special":["B"]},{"level":3,"AC":5,"attacks":"1x bite (2d4)","special":["C"]},{"level":4,"AC":4,"attacks":"1x bite (2d4)","special":["D","E"]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 bull sharks near open water (appear in 1d4 rounds)","E":"Weapons: may also use weapons in hybrid form"},"notes":"Water Breather: must be near water to change into bull shark (breathes through gills). If forced to transform away from water: can hold breath for CON score rounds (halved if fighting/exerting). Then CON checks required (cumulative -1 penalty each check) or begin drowning. Death in rounds = 1/3 CON score after failing check. Splashing water delays death 1 round/gallon; only immersion saves. In shark form on land: 10' movement only.","alignments":["Neutral","Chaotic"]},"Wereswine":{"source":"Custom Batch 3","type":"Lycanthrope","martialCategory":"martial","note":"Also known as Devil Swine.","hd":"d8","maxLevel":9,"thac0":[19,18,17,16,15,14,13,12,11],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,11,12],[8,9,10,11,12],[8,9,10,11,12]],"hdCount":[1,2,3,4,5,6,7,8,9],"hdBonus":[0,0,0,0,0,0,0,0,0],"forms":["Human/demihuman","Hog (AC7 HD2 9hp 1x bite 1d4 THAC0 18 MV 120'(40'))","Hybrid hog-man (180'(60'))"],"progression":[{"level":1,"AC":7,"attacks":"1x gore (1d4)","special":["A"]},{"level":2,"AC":6,"attacks":"1x gore (1d4)","special":["B"]},{"level":3,"AC":5,"attacks":"1x gore (1d4)","special":["C"]},{"level":4,"AC":5,"attacks":"1x gore (2d4)","special":["D"]},{"level":5,"AC":4,"attacks":"1x gore (2d4)","special":["E"]},{"level":6,"AC":4,"attacks":"1x gore (2d4)","special":["F"]},{"level":7,"AC":3,"attacks":"1x gore (2d6)","special":[]},{"level":8,"AC":3,"attacks":"1x gore (2d6)","special":[]},{"level":9,"AC":3,"attacks":"1x gore (2d6)","special":[]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 hogs (appear in 1d4 rounds)","E":"Weapons: may use weapons in hybrid form","F":"Charm: 3x/day, save vs spells at -2 or charmed (as werefox charm ability)"},"notes":"Transformation: 1 turn per lycanthrope level intentionally.","alignments":["Chaotic"]},"Weretiger":{"source":"Custom Batch 3","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":5,"thac0":[19,18,17,16,15],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14]],"hdCount":[1,2,3,4,5],"hdBonus":[0,0,0,0,0],"forms":["Human/demihuman","Tiger","Hybrid tiger-man (180'(60'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":6,"attacks":"1x bite (1d6)","special":["B"]},{"level":3,"AC":5,"attacks":"1x bite (1d6), 2x claw (1d4)","special":["C"]},{"level":4,"AC":4,"attacks":"1x bite (2d6), 2x claw (1d4)","special":["D"]},{"level":5,"AC":3,"attacks":"1x bite (2d6), 2x claw (1d6)","special":["E"]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 tigers (appear in 1d4 rounds)","E":"Weapons: may also use weapons in hybrid form"},"notes":"Surprise: on a 1-4 due to stealth. Transformation: 1 turn per lycanthrope level intentionally.","alignments":["Neutral","Chaotic"]},"Werewolf":{"source":"Custom Batch 3","type":"Lycanthrope","martialCategory":"martial","hd":"d8","maxLevel":5,"thac0":[19,18,17,16,15],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14]],"hdCount":[1,2,3,4,5],"hdBonus":[0,0,0,0,0],"forms":["Human/demihuman","Dire wolf","Hybrid wolf-man (180'(60'))"],"progression":[{"level":1,"AC":7,"attacks":"1x bite (1d4)","special":["A"]},{"level":2,"AC":6,"attacks":"1x bite (1d4)","special":["B"]},{"level":3,"AC":5,"attacks":"1x bite (2d4)","special":["C"]},{"level":4,"AC":4,"attacks":"1x bite (2d4)","special":["D"]},{"level":5,"AC":3,"attacks":"1x bite (2d4+2)","special":["E"]}],"specialAbilityKeys":{"A":"Full Moon: involuntary change, reverts at sunrise","B":"Night: voluntary at night (CON check, +2 full moon), once/day","C":"Day: voluntary daytime at -2, up to 3x/day","D":"Summon: 1d2 dire wolves (appear in 1d4 rounds)","E":"Weapons: may also use weapons in hybrid form"},"alignments":["Chaotic"],"notes":"Transformation: 1 turn per lycanthrope level intentionally."},"Assassin":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"semiMartial","hd":"d4","maxLevel":14,"requirements":{},"primeRequisite":["DEX"],"alignment":"Cannot be Lawful","note":"May not lower STR during character creation.","armor":["Leather","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"assassinSkills":[{"level":1,"AS":0,"CS":87,"HN":"1-2","HS":10,"MS":20},{"level":2,"AS":0,"CS":88,"HN":"1-2","HS":15,"MS":25},{"level":3,"AS":0,"CS":89,"HN":"1-3","HS":20,"MS":30},{"level":4,"AS":-1,"CS":90,"HN":"1-3","HS":25,"MS":35},{"level":5,"AS":-1,"CS":91,"HN":"1-3","HS":30,"MS":40},{"level":6,"AS":-2,"CS":92,"HN":"1-3","HS":33,"MS":43},{"level":7,"AS":-2,"CS":93,"HN":"1-4","HS":36,"MS":46},{"level":8,"AS":-3,"CS":94,"HN":"1-4","HS":40,"MS":50},{"level":9,"AS":-3,"CS":95,"HN":"1-4","HS":43,"MS":53},{"level":10,"AS":-4,"CS":96,"HN":"1-4","HS":46,"MS":56},{"level":11,"AS":-4,"CS":97,"HN":"1-5","HS":50,"MS":60},{"level":12,"AS":-5,"CS":98,"HN":"1-5","HS":53,"MS":63},{"level":13,"AS":-5,"CS":99,"HN":"1-5","HS":56,"MS":66},{"level":14,"AS":-6,"CS":99,"HN":"1-5","HS":60,"MS":70}],"assassinSkillKeys":{"AS":"Assassination: penalty to victim's save vs death (not a roll; +4 to hit, victim saves vs death at penalty or dies instantly; else normal damage). Vs humans/demihumans any level or humanoids up to 4+1 HD. Non-living immune.","CS":"Climb sheer surfaces % (roll per 100' climbed, fail = fall at halfway)","HN":"Hear noise (rolled on 1d6, success if within listed range)","HS":"Hide in shadows % (must be motionless)","MS":"Move silently %"},"special":["Assassination: +4 to hit unaware humanoid from behind; victim saves vs death at level-based penalty or dies instantly","Disguise: 2% detection chance, +2% per change (class/race/sex); height up to 3in shorter or 5in taller","Poison: victims of assassin poisoning suffer -2 to save","Hirelings: levels 1-3 may not hire retainers/mercs/specialists; level 4+ can hire assassins; level 8+ thieves; level 12+ any","At 12th level: may attempt to take over existing assassin or thief guild by killing guild-master"],"alignments":["Neutral","Chaotic"]},"Barbarian":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"martial","hd":"d8","maxLevel":14,"requirements":{"DEX":9},"primeRequisite":["CON","STR"],"xpBonus":{"5pct":"13 in one prime requisite","10pct":"STR 16 and CON 16"},"armor":["Leather","Chainmail","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"1st level barbarian cannot read or write regardless of INT. Fear of Magic: will refuse to knowingly use or come under influence of spells or magic items; will accept divine magic associated with tribal religion.","thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[10,13,12,15,16],[10,13,12,15,16],[10,13,12,15,16],[8,11,10,13,13],[8,11,10,13,13],[8,11,10,13,13],[6,9,8,10,10],[6,9,8,10,10],[6,9,8,10,10],[4,7,6,8,7],[4,7,6,8,7],[4,7,6,8,7],[3,5,4,5,5],[3,5,4,5,5]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,3,6,9,12,15],"barbarianSkills":[{"level":1,"CS":87,"HD":10,"MS":20},{"level":2,"CS":88,"HD":15,"MS":25},{"level":3,"CS":89,"HD":20,"MS":30},{"level":4,"CS":90,"HD":25,"MS":35},{"level":5,"CS":91,"HD":30,"MS":37},{"level":6,"CS":92,"HD":33,"MS":40},{"level":7,"CS":93,"HD":36,"MS":42},{"level":8,"CS":94,"HD":40,"MS":44},{"level":9,"CS":95,"HD":43,"MS":46},{"level":10,"CS":96,"HD":46,"MS":48},{"level":11,"CS":97,"HD":50,"MS":50},{"level":12,"CS":98,"HD":53,"MS":50},{"level":13,"CS":99,"HD":56,"MS":50},{"level":14,"CS":99,"HD":60,"MS":50}],"barbarianSkillKeys":{"CS":"Climb sheer surfaces % (natural surfaces only \u2014 tree trunks, cliff faces; roll per 100')","HD":"Hide in undergrowth % (must be motionless)","MS":"Move silently %"},"special":["Agile Fighting: +1 AC at level 4, +2 at level 6, +3 at level 8, +4 at level 10","Cure Poison: in wilderness, gather herbs to concoct antidote to natural poisons (1 turn per subject; subject gets second save vs poison)","Fear of Magic: refuses arcane magic/items; accepts tribal divine magic","Foraging and Hunting: party forages with 2-in-6 chance, finds prey hunting with 5-in-6 chance","Strike Invulnerable Monsters: from level 4, can hit monsters normally only harmed by magic","At 8th level: muster horde of 250 warriors per level above 7th (1st level fighters, 1 week to muster, lasts 1 week per level, disbanded when purpose achieved/abandoned)"],"alignments":["Lawful","Neutral","Chaotic"]},"Bard":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"semiMartial","hd":"d6","maxLevel":14,"requirements":{"DEX":9,"INT":9},"primeRequisite":["CHA"],"armor":["Leather","Chainmail (no shields)"],"weapons":["Missile weapons","One-handed melee weapons"],"languages":["Alignment","Common"],"note":"Bards learn an additional language at every even level above 3rd (4th, 6th, 8th, etc.). May learn the secret tongue of druids. Spell list same as druids (divine). Deity disfavour applies.","thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"spellsPerDay":[[],[1],[2],[3],[3,1],[3,2],[3,3],[3,3,1],[3,3,2],[3,3,3],[3,3,3,1],[3,3,3,2],[3,3,3,3],[4,4,3,3]],"special":["Anti-Charm: while playing music and singing, allies within 30' immune to song-based magic and sylvan/fairy beguiling powers; already-affected allies get new save at +4","Divine Magic: druid spell list from 2nd level; requires holy symbol (sprig of mistletoe harvested by character)","Enchantment: 30' radius, does not work in combat; up to 2HD of creatures per bard level affected; target saves vs spells or fascinated (rapt attention, will follow); level 1=persons, level 4+=animals, level 7+=monsters; performance end without interruption: charmed subjects save vs spells at +2 or charmed 1 turn per level (friendship, obey commands in shared language, alignment/suicidal commands may be ignored)","Lore: from 2nd level, 2-in-6 chance of knowing lore on monsters/magic items/heroes of legend; can identify nature and powers of magic items","At 11th level: establish manor, attract 2d6 1st-level apprentice bards"],"alignments":["Lawful","Neutral","Chaotic"]},"Drow":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"martial","hd":"d6","maxLevel":10,"requirements":{"INT":9},"primeRequisite":["STR","WIS"],"xpBonus":{"5pct":"STR 13 and WIS 13","10pct":"STR 13 and WIS 16"},"armor":["Any including shields"],"weapons":["Any"],"languages":["Alignment","Common","Deepcommon","Elvish","Gnomish","Secret language of spiders"],"thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[12,13,13,15,12],[12,13,13,15,12],[12,13,13,15,12],[10,11,11,13,10],[10,11,11,13,10],[10,11,11,13,10],[8,9,9,10,8],[8,9,9,10,8],[8,9,9,10,8],[6,7,8,8,6]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2,1],[3,3,2,2,1],[3,3,3,2,2],[4,4,3,3,2],[4,4,4,3,3]],"note":"At 1st level may only pray for light(darkness) spell. From 2nd level may pray for any cleric spell. From 3rd level may also pray for magic-user web spell. Cleric spell list. Magical research at any level; create magic items at level 9.","special":["Combat: all weapons and armour","Detect Secret Doors: 2-in-6 when actively searching","Divine Magic: cleric spell list; must carry holy symbol; light(darkness) only at level 1","Immunity to Ghoul Paralysis","Infravision 90'","Light Sensitivity: -2 to attack, -1 AC in bright light (daylight or continual light)","Listening at Doors: 2-in-6","Spider Affinity: speaks secret language of spiders, +1 reaction rolls with spiders","At 9th level: establish subterranean stronghold/temple; attract 5d6x10 non-spellcasting drow followers of 1st or 2nd level"],"alignments":["Neutral","Chaotic"]},"Druid":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"semiMartial","hd":"d6","maxLevel":14,"requirements":{},"primeRequisite":["WIS"],"alignment":"Neutral only","armor":["Leather","Wooden shields (no metal armor or metal shields)"],"weapons":["Club","Dagger","Sling","Spear","Staff"],"languages":["Alignment","Common"],"note":"Druids speak a secret tongue known only to their sect. At each level above 2nd, learn a language of a Sylvan forest creature (dryads, green dragons, pixies, treants). Cannot use magical books or tomes. At 12th level: only 9 druids of 12th level allowed \u2014 must challenge existing 12th-level druid to advance. Only 3 druids of 13th level, 1 arch-druid of 14th.","thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[6,7,9,11,9],[6,7,9,11,9],[6,7,9,11,9],[6,7,9,11,9],[3,5,7,8,7],[3,5,7,8,7]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1,1],[2,2,2,1,1],[3,3,2,2,1],[3,3,3,2,2],[4,4,3,3,2],[4,4,4,3,3],[5,5,4,4,3],[5,5,5,4,4],[6,5,5,5,4],[6,6,5,5,5]],"special":["Charm Immunity: from level 7, immune to charms of fairies and Sylvan creatures (dryads, nixies)","Energy Resistance: +2 saves vs electricity (lightning) and fire","Identification: identify all plants and animals, discern pure water","Pass Without Trace: from level 3, pass through natural environments leaving no tracks; move through overgrown areas at normal speed","Path-Finding: party has only 1-in-6 chance of getting lost in woodlands","Shape Change: from level 7, change into reptile/bird/mammal once per day each; up to ~2x normal bulk; regain 1d4 HP per level on change; equipment absorbed and reappears","At 9th level: can create magic items; at 12th level: challenge requirement for advancement"],"alignments":["Neutral"]},"Duergar":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"martial","hd":"d6","maxLevel":10,"requirements":{"CON":9,"INT":9},"primeRequisite":["STR"],"armor":["Any including shields"],"weapons":["Small or normal sized (no longbows, no two-handed swords)"],"languages":["Alignment","Common","Deepcommon","Dwarvish","Gnomish","Goblin","Kobold"],"thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[8,9,10,13,12],[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8],[2,3,4,4,6]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,3],"special":["Detect Construction Tricks: 2-in-6 when searching","Detect Room Traps: 2-in-6 when searching","Infravision 90'","Light Sensitivity: -2 to attack, -1 AC in bright light","Listening at Doors: 2-in-6","Mental Powers: 1/day per level, choose one: Enlargement (body/clothing/armour double size 1d4 rounds, melee attacks double damage), Invisibility (up to 1HD per level invisible 1 turn; in combat -4 to attack after first round), Shrinking (6\" tall up to 1 turn per level; slip through narrow spaces; 90% unnoticed motionless; cannot harm creatures >1' tall), Heat (creature/object within sight subjected to scorching heat 1 round per level; paper/cloth ignite, liquids boil, metals glow; 1d4 damage/round to flesh or metal armor). Activating requires 1 round concentration; cannot move/attack/act while concentrating.","Stealth: 3-in-6 chance of moving silently underground","At 9th level: establish underground stronghold; duergar ruler may only hire duergar mercenaries"],"alignments":["Lawful","Neutral"]},"Gnome":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"nonMartial","hd":"d4","maxLevel":8,"requirements":{"CON":9},"primeRequisite":["DEX","INT"],"xpBonus":{"5pct":"DEX 13 and INT 13","10pct":"DEX 13 and INT 16"},"armor":["Leather (tailored to small size)","Shields"],"weapons":["Any appropriate to size (no longbows, no two-handed swords)"],"languages":["Alignment","Common","Gnomish","Dwarvish","Kobold","Secret language of burrowing mammals"],"thac0":[19,19,19,19,19,17,17,17],"saves":[[8,9,10,14,11],[8,9,10,14,11],[8,9,10,14,11],[8,9,10,14,11],[8,9,10,14,11],[6,7,8,11,9],[6,7,8,11,9],[6,7,8,11,9]],"hdCount":[1,2,3,4,5,6,7,8],"hdBonus":[0,0,0,0,0,0,0,0],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2]],"note":"Spell list same as illusionist (arcane). Magical research at any level; create magic items at level 8. Armour must be tailored to gnome small size.","special":["Arcane Magic: illusionist spell list; spell book; magical research","Combat: leather armour/shields; size-appropriate weapons; no longbows or two-handed swords","Defensive Bonus: +2 AC vs large opponents (greater than human-sized)","Detect Construction Tricks: 2-in-6 when searching","Hiding: 90% in woodland cover; 2-in-6 in dungeons (shadows/cover); must be motionless","Infravision 90'","Listening at Doors: 2-in-6","Speak with Burrowing Mammals: knows secret language of burrowing mammals (badgers, moles, etc.)","At 8th level: establish underground stronghold; burrowing mammals within 5 miles become friends (warn of intruders, carry messages); gnome must protect them"],"alignments":["Lawful","Neutral","Chaotic"]},"HalfElf":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"martial","hd":"d6","maxLevel":12,"requirements":{"CHA":9,"CON":9},"primeRequisite":["INT","STR"],"xpBonus":{"5pct":"INT 13 and STR 13","10pct":"16+ in one prime req and 13+ in other"},"armor":["Any including shields"],"weapons":["Any"],"languages":["Alignment","Common","Elvish"],"thac0":[19,19,19,17,17,17,14,14,14,12,12,12],"saves":[[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,10,10],[8,9,9,10,10],[8,9,9,10,10],[6,7,8,8,8],[6,7,8,8,8],[6,7,8,8,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6],"spellsPerDay":[[],[1],[2],[2],[2,1],[2,2],[2,2],[2,2,1],[3,2,1],[3,2,2],[3,2,2,1],[3,3,2,1]],"note":"From 2nd level, gains arcane spell casting (magic-user spell list). Spell book. Can use arcane scrolls and arcane-only magic items (wands).","special":["Arcane Magic: magic-user spell list from 2nd level; spell book","Combat: all weapons and armour","Detect Secret Doors: 2-in-6 when searching","Infravision 60'","At 9th level: construct stronghold (human or elven); human=castle/barony; elven=forest stronghold (forest animals within 5 miles become friends)"],"alignments":["Lawful","Neutral","Chaotic"]},"HalfOrc":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Demihuman","martialCategory":"semiMartial","hd":"d6","maxLevel":8,"requirements":{},"primeRequisite":["DEX","STR"],"xpBonus":{"5pct":"DEX 13 and STR 13","10pct":"DEX 16 and STR 16"},"armor":["Leather","Chainmail","Shields"],"weapons":["Any"],"languages":["Alignment","Common","Orcish"],"note":"Retainers' loyalty score reduced by 1 (except half-orc retainers).","thac0":[19,19,19,19,17,17,17,17],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13]],"hdCount":[1,2,3,4,5,6,7,8],"hdBonus":[0,0,0,0,0,0,0,0],"halfOrcSkills":[{"level":1,"HS":10,"MS":20,"PP":20},{"level":2,"HS":15,"MS":25,"PP":25},{"level":3,"HS":20,"MS":30,"PP":30},{"level":4,"HS":25,"MS":35,"PP":35},{"level":5,"HS":30,"MS":40,"PP":40},{"level":6,"HS":36,"MS":45,"PP":45},{"level":7,"HS":45,"MS":55,"PP":55},{"level":8,"HS":55,"MS":65,"PP":65}],"halfOrcSkillKeys":{"HS":"Hide in shadows % (must be motionless)","MS":"Move silently %","PP":"Pick pockets % (-5% per level of victim above 5th; roll >2x% = theft noticed)"},"special":["Back-Stab: +4 to hit unaware opponent from behind, doubles damage","Combat: leather/chainmail/shields, any weapons","Infravision 60'","Thieving Skills: hide in shadows, move silently, pick pockets (by level table)","At 8th level: establish bandit stronghold, attract 2d6 apprentices (1st level fighters/thieves/half-orcs)"],"alignments":["Neutral","Chaotic"]},"Illusionist":{"source":"Batch 4 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"nonMartial","hd":"d4","maxLevel":14,"requirements":{"DEX":9},"primeRequisite":["INT"],"armor":["None"],"weapons":["Dagger","Staff (optional)"],"languages":["Alignment","Common"],"note":"Cannot use magic items that cause direct damage (e.g. wand that shoots fireballs). Optional: may be allowed to wield staff in combat. Spell list on p130 (illusionist spells). Magical research at any level; create magic items at level 9.","thac0":[19,19,19,19,19,17,17,17,17,17,14,14,14,14],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[11,12,11,14,12],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8],[8,9,8,11,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2,1],[3,3,3,3,2],[4,3,3,3,2,1],[4,4,3,3,3,2],[4,4,4,3,3,3],[4,4,4,4,3,3]],"special":["Arcane Magic: illusionist spell list; spell book; magical research; create magic items at level 9","Combat: dagger only (no armour, no shields); optionally staff","Cannot use magic items causing direct damage","At 11th level: build stronghold (often great tower); 1d6 apprentices of levels 1-3 arrive"],"alignments":["Lawful","Neutral","Chaotic"]},"Knight":{"source":"Batch 5 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"martial","requirements":{"CON":9,"DEX":9},"primeRequisite":["STR"],"hd":"d8","maxLevel":14,"armor":["Chainmail","Plate mail","Shields"],"weapons":["Melee weapons only (no missile weapons)"],"languages":["Alignment","Common"],"note":"Knights regard all missile weapons as dishonourable. Levels 1-2 are known as 'squires'; knighted at 3rd level. Alignment must match liege's. Dishonour may cause loss of class (becomes fighter of same level). Always favours most impressive/impervious armour available. In battle must attack most powerful foe in single combat.","thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,10,12],[8,9,10,10,12],[8,9,10,10,12],[6,7,8,8,10],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,5,8],[4,5,6,5,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"special":["Beguilement: +4 saves vs hold/charm/mind control/hypnotism/suggestion; +2 vs illusions; may save vs sleep (normally no save allowed)","Chivalric Code: no XP for deeds against code; death before dishonour; serve liege; glory in single combat; defend charges to the death","Combat: all melee weapons; chainmail, plate mail, shields; no missile weapons","Flying mounts: from 5th level, may train flying monsters as mounts (up to knight's level in HD; takes 1 month)","Horsemanship \u2013 Assessing steeds: can assess worth of any steed (low/average/high HP)","Horsemanship \u2013 Urging great speed: from 5th level, increase steed's movement by 30' (10') for up to 6 turns, 1/day","Hospitality: from 3rd level, receives hospitality from nobles and knights of same alignment/order; must extend same in kind","Mounted combat: +1 to attack rolls when mounted","Strength of Will \u2013 Fear: immune to all supernatural fear; from 3rd level companions within 10' gain +2 save vs fear; retainers/mercenaries within 10' gain +2 loyalty/morale","Stronghold: from 3rd level may build castle/stronghold with liege's permission; may be granted title of Baron/Baroness at 9th level"],"alignments":["Lawful","Neutral","Chaotic"]},"Paladin":{"source":"Batch 5 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"martial","requirements":{"CHA":9},"primeRequisite":["STR","WIS"],"hd":"d8","maxLevel":14,"armor":["Any","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"Must be Lawful. If alignment ever changes, loses all class abilities and becomes fighter of same level (may regain via quest of atonement). +5% XP if one prime requisite \u226513; +10% if both STR and WIS \u226516. Spells from 9th level (cleric list). Vow of Humility: may keep only 1 magical armour, 1 magical shield, 1 magical melee weapon; must donate 10% of all income to a Lawful religious institution.","thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,11,12],[8,9,10,11,12],[8,9,10,11,12],[6,7,8,8,10],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,6,8],[4,5,6,6,8],[4,5,6,6,8],[2,3,4,3,6],[2,3,4,3,6]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"spellsPerDay":[[],[],[],[],[],[],[],[],[1],[2],[2,1],[2,2],[2,2,1],[3,2,1]],"turningUndeadFromLevel":3,"turningTable":{"note":"Roll 2d6; compare vs HD of undead. T=turned, D=destroyed, number=minimum roll needed, -=fails.","byLevel":{"3":{"1":7,"2":9,"2*":11,"3":"-","4":"-","5":"-","6":"-","7-9":"-"},"4":{"1":"T","2":7,"2*":9,"3":11,"4":"-","5":"-","6":"-","7-9":"-"},"5":{"1":"T","2":"T","2*":7,"3":9,"4":11,"5":"-","6":"-","7-9":"-"},"6":{"1":"D","2":"T","2*":"T","3":7,"4":9,"5":11,"6":"-","7-9":"-"},"7":{"1":"D","2":"D","2*":"T","3":"T","4":7,"5":9,"6":11,"7-9":"-"},"8":{"1":"D","2":"D","2*":"D","3":"T","4":"T","5":7,"6":9,"7-9":11},"9":{"1":"D","2":"D","2*":"D","3":"D","4":"T","5":"T","6":7,"7-9":9},"10":{"1":"D","2":"D","2*":"D","3":"D","4":"D","5":"T","6":"T","7-9":7},"11":{"1":"D","2":"D","2*":"D","3":"D","4":"D","5":"D","6":"T","7-9":"T"},"12":{"1":"D","2":"D","2*":"D","3":"D","4":"D","5":"D","6":"D","7-9":"T"},"13+":{"1":"D","2":"D","2*":"D","3":"D","4":"D","5":"D","6":"D","7-9":"D"}}},"special":["Alignment: must be Lawful; loses class if alignment changes (becomes fighter same level; may regain via quest)","Combat: any weapons and armour","Divine magic: from 9th level, may pray for spells (cleric list); holy symbol required; deity disfavour applies","Holy resistance: immune to all disease","Laying on hands: 1/day, heal 2 HP per level; from 5th level, cure disease 1/week by laying on hands","Turning the undead: from 3rd level (see turning table)","Vow of Humility: max 1 magical armour, 1 magical shield, 1 magical melee weapon; donate 10% income to Lawful institution","Warhorse: from 4th level, may summon holy charger (AC 5 [14], 5+5 HD, move 180'/60'); if it dies, cannot summon another for 10 years","At 9th level: build castle/stronghold with holy order permission; may be granted title of Baron/Baroness"],"alignments":["Lawful"]},"Ranger":{"source":"Batch 5 \u2014 OSE Advanced Fantasy","type":"Standard","martialCategory":"martial","requirements":{"CON":9,"WIS":9},"primeRequisite":["STR"],"hd":"d8","maxLevel":14,"armor":["Leather","Chainmail","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"May only be Lawful or Neutral. If alignment changes to Chaotic, loses all class abilities and becomes fighter of same level (may regain via special quest). Cannot use plate mail (stealth requirement). Limited possessions: may only keep wealth/possessions on their person or mount; excess must be donated.","thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[12,13,14,15,16],[12,13,14,15,16],[12,13,14,15,16],[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,10,12],[8,9,10,10,12],[8,9,10,10,12],[6,7,8,8,10],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,5,8],[4,5,6,5,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"spellsPerDay":[[],[],[],[],[],[],[],[1],[2],[2,1],[2,2],[2,2,1],[3,2,1],[3,2,2]],"spellList":"Druid spell list","trackingChance":[20,30,40,50,60,70,80,90,100,110,110,110,110,110],"special":["Alignment: Lawful or Neutral only; if becomes Chaotic loses class (becomes fighter same level; may regain via quest)","Awareness: surprised only on 1-in-6","Combat: any weapons; leather, chainmail, shields; no plate mail","Divine magic: from 8th level, druid spell list","Foraging and hunting: party succeeds at foraging 2-in-6; finds prey when hunting 5-in-6","Limited possessions: may only keep wealth/possessions on person or mount; excess donated to worthy causes","Pursuit: when party pursues opposing group in wilderness, evasion chance reduced by 10%","Stealth: 3-in-6 hiding and 3-in-6 moving silently in the wilderness","Tracking: % chance by level (20% at L1, +10% per level to 100% at L9, then 110%); modifiers: soft/hard ground \u00b120\u201350%, group size +2%/creature, tracks mingling \u201350%, age \u20135%/12hrs, rainfall \u201325%/hr, hiding tracks \u201325%","At 10th level: 2d12 followers of varied types join (human/demihuman adventurers, animals, fantastic mounts, sylvan creatures, special monsters); not replaced if killed"],"alignments":["Lawful","Neutral"]},"PhaseElf":{"source":"Batch 5 \u2014 OSE Campaign Compendium (demihuman class)","type":"Demihuman","martialCategory":"martial","requirements":{"INT":9},"primeRequisite":["INT","STR"],"hd":"d6","maxLevel":10,"armor":["Any, including shields (fighter phase) / None (magic-user phase)"],"weapons":["Any (fighter phase) / Dagger only (magic-user phase)"],"languages":["Alignment","Common","Elvish","Doppelg\u00e4nger","Dragon","Pixie"],"note":"Phase elves have two independent phases (fighter and magic-user). Each morning may switch phase (once per day). THAC0 and saves use active phase's class values. Single HP pool: at creation roll HD of both classes, divide total by 2. XP tracked separately per class. Two phases may be of different alignment.","thac0":[19,19,19,19,17,17,17,17,14,14],"saves":[[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,10,10],[8,9,9,10,10]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2,1],[3,3,3,3,2]],"spellList":"Magic-user spell list (MU phase only)","special":["Dual Persona: fighter phase and magic-user phase; phase once per day upon waking","THAC0 and saves: use active phase's class values","Class abilities: only active phase's abilities available (incl. spellcasting, allowed weapons/armour)","Hit points: single pool; creation = (roll fighter HD + roll MU HD) \u00f7 2; fractions tracked","Arcane magic (MU phase): spell book; magical research; create magic items at 9th level; can use MU scrolls and wands","Detect secret doors: 2-in-6 when actively searching","Immunity to ghoul paralysis","Infravision 60'","Listening at doors: 2-in-6","At 9th level: bring extra-dimensional space into being via magical doorway (10 mile diameter area; no buildings or sentient creatures; may build stronghold inside)"],"alignments":["Lawful","Neutral","Chaotic"]},"WoodElf":{"source":"Batch 5 \u2014 OSE Campaign Compendium (demihuman class)","type":"Demihuman","martialCategory":"semiMartial","requirements":{"DEX":9,"INT":9},"primeRequisite":["DEX","WIS"],"hd":"d6","maxLevel":10,"armor":["Leather","Shields"],"weapons":["Any"],"languages":["Alignment","Common","Elvish","Bugbear","Dryad","Gnoll"],"note":"Wood elves worship nature and its deities. Must be faithful to alignment/religion; deity disfavour may apply. Spells from druid list (or cleric list if not using OSE Advanced Fantasy; cannot memorise cure light wounds until 2nd level in that case). Can use divine magic scrolls and staves. Magical research at any level; create magic items at 9th level.","thac0":[19,19,19,19,17,17,17,17,14,12],"saves":[[12,13,13,15,15],[12,13,13,15,15],[12,13,13,15,15],[10,11,11,13,12],[10,11,11,13,12],[10,11,11,13,12],[8,9,9,10,10],[8,9,9,10,10],[8,9,9,10,10],[6,7,8,8,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"spellsPerDay":[[1],[2],[2,1],[2,2],[2,2,1],[2,2,2],[3,2,2,1],[3,3,2,2],[3,3,3,2,1],[3,3,3,3,2]],"spellList":"Druid spell list (or cleric list without Advanced Fantasy supplement)","special":["Awareness: surprised only on 1-in-6","Combat: leather armour, shields, any weapon; no armour heavier than leather","Detect secret doors: 2-in-6 when actively searching","Divine magic: druid spell list; holy symbol required; deity disfavour applies; magical research any level; create magic items at 9th level","Foraging and hunting: party forages 2-in-6; finds prey 5-in-6","Hiding: 90% chance in woods or undergrowth","Immunity to ghoul paralysis","Infravision 60'","Listening at doors: 2-in-6","Missile attack bonus: +1 to attack rolls with all missile weapons","At 9th level: construct treetop stronghold; forest animals within 5 miles become friendly (warn intruders, carry messages); wood elf ruler must protect animals from harm; may only hire elven mercenaries (any race specialists/retainers allowed)"],"alignments":["Lawful","Neutral","Chaotic"]},"Svirfneblin":{"source":"Batch 5 \u2014 OSE Advanced Fantasy (demihuman class)","type":"Demihuman","martialCategory":"semiMartial","requirements":{"CON":9},"primeRequisite":["STR"],"hd":"d6","maxLevel":8,"armor":["Any appropriate to size","Shields"],"weapons":["Any appropriate to size (no longbows, no two-handed swords)"],"languages":["Alignment","Common","Deepcommon","Gnomish","Dwarvish","Kobold","language of earth elementals"],"thac0":[19,19,19,17,17,17,14,14],"saves":[[8,9,10,14,11],[8,9,10,14,11],[8,9,10,14,11],[6,7,8,11,9],[6,7,8,11,9],[6,7,8,11,9],[4,5,6,9,7],[4,5,6,9,7]],"hdCount":[1,2,3,4,5,6,7,8],"hdBonus":[0,0,0,0,0,0,0,0],"special":["Blend into stone: 4-in-6 (gloomy) or 2-in-6 (well-lit) to go unnoticed in natural/carved stone while silent and motionless","Combat: any size-appropriate armour and weapons; no longbows or two-handed swords; armour must be tailored to small size","Defensive bonus: +2 AC vs large opponents (greater than human-sized)","Detect construction tricks: 2-in-6 when searching","Illusion resistance: +2 to all saves vs illusions","Infravision 90'","Light sensitivity: -2 attack, -1 AC in bright light","Listening at doors: 2-in-6","Speak with earth elementals","Stone murmurs: 2-in-6 (after 1 turn ear to stone) to divine: secret doors within 10'; gems/precious metals within 30'; living creatures within 30'; bodies of water or open spaces within 60'","Using magic items: can use earth elemental summoning/control items (including normally caster-only items; not spell scrolls)","At 8th level: build subterranean stronghold; 1d3 16 HD earth elementals live nearby, friendly, protect in grave danger; svirfneblin ruler must always defend earth elementals in territory; may hire svirfneblin soldiers and any-race specialists/retainers"],"alignments":["Lawful","Neutral","Chaotic"]},"Acolyte":{"source":"Batch 6 \u2014 OSE Campaign Compendium #1","type":"Standard","martialCategory":"semiMartial","requirements":{},"primeRequisite":["WIS"],"hd":"d6","maxLevel":14,"armor":["Any","Shields"],"weapons":["Blunt weapons only (club, mace, sling, staff, war hammer)"],"languages":["Alignment","Common"],"note":"Acolytes cannot memorize spells but cast cleric spells from scrolls. Holy symbol required. Deity disfavour applies. Magical research at any level; create magic items from 9th level. From 2nd level: heal by touch 1/day per level (1d3 HP or another save vs negative effect). Skills usable within 30'.","thac0":[19,19,19,19,17,17,17,17,14,14,14,12,12,12],"saves":[[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[11,12,14,16,15],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[9,10,12,14,12],[6,7,9,11,9],[6,7,9,11,9],[6,7,9,11,9],[3,5,7,8,7],[3,5,7,8,7],[3,5,7,8,7]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"skills":{"BL":{"name":"Bless","description":"Allies gain +1 to attack and damage rolls for 1 round per level; once per turn"},"DM":{"name":"Detect magic","description":"1 turn concentration on object; failed checks may be re-attempted; referee rolls"},"KA":{"name":"Know alignment","description":"Immediate knowledge of alignment of one character/monster/object/location; once per subject"},"PU":{"name":"Purify","description":"Makes rotten/poisonous/spoiled food and water pure (6 quarts drink, 1 ration, or unpres. food for 12 humans); once per item"},"RA":{"name":"Rally","description":"Counters magical fear effects; once per turn"},"TU":{"name":"Turn undead","description":"Affects undead up to 1 HD greater than acolyte's level; -5% per HD; if succeeds 2d6 HD forced to leave area; once per turn"}},"skillChanceByLevel":{"BL":[10,35,40,45,50,55,60,65,70,71,72,73,74,75],"DM":[30,50,55,60,65,70,75,80,85,90,95,97,98,99],"KA":[20,35,40,45,50,55,60,65,70,75,80,85,90,95],"PU":[20,23,25,26,35,45,55,65,70,75,80,85,90,95],"RA":[25,55,60,65,70,75,80,83,86,90,92,95,98,99],"TU":[50,55,60,65,70,75,80,85,90,95,100,105,110,115]},"special":["Combat: any armour and shields; blunt weapons only (club, mace, sling, staff, war hammer)","Divine magic: cannot memorize spells; can cast cleric spells from scrolls; holy symbol required; deity disfavour applies; magical research any level; create magic items from 9th level; can use divine magic scrolls and staves","Healing: from 2nd level, 1/day per level heal by touch \u2014 cures 1d3 HP or grants another save vs negative effect","Skills (within 30', rolled on d%): Bless (BL), Detect Magic (DM), Know Alignment (KA), Purify (PU), Rally (RA), Turn Undead (TU)","At 9th level: establish/build stronghold; 5d6\u00d710 fighters of level 1-2 join as completely devoted followers (never check morale); referee decides proportions of bowmen/infantry/etc."],"alignments":["Lawful","Neutral","Chaotic"]},"BeastMaster":{"source":"Batch 6 \u2014 OSE Campaign Compendium #3","type":"Standard","martialCategory":"semiMartial","requirements":{},"primeRequisite":["STR","WIS"],"hd":"d6","maxLevel":14,"armor":["Leather","Chainmail","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"+5% XP if one prime requisite \u226513; +10% if both STR and WIS \u226516.","thac0":[19,19,19,19,17,17,17,17,14,14,14,14,12,12],"saves":[[11,12,12,15,16],[11,12,12,15,16],[11,12,12,15,16],[11,12,12,15,16],[9,10,10,13,14],[9,10,10,13,14],[9,10,10,13,14],[9,10,10,13,14],[7,8,8,11,12],[7,8,8,11,12],[7,8,8,11,12],[7,8,8,11,12],[5,6,6,9,10],[5,6,6,9,10]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"special":["Animal companions: attempt to bond with encountered animal via approach; reaction roll \u22658 = companion; wild/domestic animals; giant/magical at referee's discretion; max companions = experience level; total companion HD \u2264 character's level; if companion dies/dismissed, may attempt new bond","Companions' behaviour: follows everywhere; obeys basic commands; fights to defend beast master; never checks morale","Clairvoyance: from 5th level, can see through eyes of any animal companion wherever they may be; requires deep concentration","Combat: leather, chainmail, shields, any weapons","Identify tracks: can identify tracks and spoor of animals in the wild","Reaction modifier: +1 bonus to reaction rolls with animals (in addition to CHA modifier)","Speak with animals: animals understand basic meaning of beast master's words; from 2nd level: can also understand animal speech; from 4th level: empathic communication within sight without words","At 9th level: construct wilderness stronghold; animals within 5 miles become friendly (warn intruders, carry messages); beast master must protect animals from harm"],"alignments":["Lawful","Neutral","Chaotic"]},"Kineticist":{"source":"Batch 6 \u2014 OSE Campaign Compendium #1","type":"Standard","martialCategory":"nonMartial","requirements":{},"primeRequisite":["DEX","WIS"],"hd":"d6","maxLevel":14,"armor":["None"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"+5% XP if both DEX and WIS \u226513; +10% if both \u226516. No armour or shields \u2014 relies on honed reactions and natural AC (improves with level). Mental powers activate at start of initiative (before movement); one power per round maximum; 2 activations per day per level. Referee may allow player to choose powers.","naturalACByLevel":[9,8,7,6,5,4,3,2,1,0,-1,-2,-3,-3],"mentalPowersKnownByLevel":[3,3,4,4,5,5,6,6,7,7,8,8,9,9],"thac0":[19,19,19,19,17,17,17,14,14,14,14,12,12,12],"saves":[[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[13,14,13,16,15],[12,13,11,14,13],[12,13,11,14,13],[12,13,11,14,13],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[10,11,9,12,10],[8,9,7,10,8],[8,9,7,10,8],[8,9,7,10,8]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"mentalPowers":{"AcceleratedMotion":{"duration":"1 round","range":"The kineticist","description":"Movement rate doubled. Multiple melee attacks per round (level 1-4: 2 attacks; 5-8: 3; 9-12: 4; 13+: 5)."},"ControlDensity":{"duration":"1 round per level","range":"The kineticist","description":"Lighter: barely touches ground, no tracks in soft surfaces, can walk on water surface. Heavier: rooted to spot, immune to attacks/effects causing falling or being pushed."},"CrushLife":{"duration":"Concentration, up to 1 round per level","range":"30'","description":"Living target suffers 1d3 damage/round and must save vs paralysis or be unable to move/act (save each round). Non-living creatures (undead, constructs) unaffected. Distraction ends power."},"KineticFist":{"duration":"1 round per level","range":"The kineticist","description":"Unarmed attacks charged with kinetic energy. Damage by level: L1-4: 2d4; L5-8: 2d6; L9-12: 2d8; L13+: 2d12. Can harm monsters immune to mundane damage. Invulnerable monster rule applies."},"KineticLeap":{"duration":"Instant","range":"10' + 10' per level","description":"Propels self with kinetic force. Can leap to any location within range, including vertically."},"KineticShield":{"duration":"Concentration, up to 1 round per level","range":"The kineticist","description":"Shield of kinetic energy deflects attacks. Immune to small non-magical missiles. Melee attackers suffer -2 to attack rolls. Kineticist gains +2 saves vs magic wands/rods/staves, breath weapons, and energy attacks. Distraction (except moving) ends power."},"KineticWave":{"duration":"Instant","range":"30'","description":"Wave of kinetic force at single target. Target must save vs paralysis or be pushed back. On failed save: 1d6 damage and thrown 10' per kineticist level away."},"TelekineticAttack":{"duration":"Instant","range":"10' per level","description":"Telekinetically lifts object within range (max 200 coins/level) and hurls at target within 60' of object. Target saves vs wands or is hit. Damage by object weight: up to 200 coins=2d4; 201-400=2d6; 401-800=3d6; 801-1500=4d6; 1501+=5d6."},"ThrowWeapon":{"duration":"Instant","range":"10' per level","description":"Throws held melee weapon in precise arcing flight at target within range; weapon returns to hand. Handled as missile attack with +4 bonus. On hit, damage is doubled."}},"special":["Armour Class: natural AC improves with level (L1:9, L2:8, L3:7, L4:6, L5:5, L6:4, L7:3, L8:2, L9:1, L10:0, L11:-1, L12:-2, L13-14:-3); no armour or shields","Combat: all weapons; no armour or shields","Mental defence: +2 bonus to all saves vs mental powers (including powers of other kineticists)","Mental powers: know 3 at L1, gaining 1 more each odd level; activate 2x/day per level; one power per round; activate at start of initiative before movement; referee (or player) chooses which powers are known","At 9th level: establish academy; 1d6 apprentices of level 1d4 arrive to study"],"alignments":["Lawful","Neutral","Chaotic"]},"Mage":{"source":"Batch 6 \u2014 OSE Campaign Compendium #1","type":"Standard","martialCategory":"nonMartial","requirements":{},"primeRequisite":["INT","WIS"],"hd":"d6","maxLevel":14,"armor":["None"],"weapons":["Dagger","Short sword","Staff","Sword"],"languages":["Alignment","Common"],"note":"+5% XP if both INT and WIS \u226513; +10% if INT \u226516 and WIS \u226513. Cannot memorize spells; casts arcane spells from scrolls only. +2 AC bonus from deep magic connection. Mage's staff: in mage's hands, normal staff can harm creatures immune to mundane attacks; 1/day emit 30' radius light for 1 turn/level. Scribing scrolls: any level. Healing: 1/day, 1 turn, either cure 1 HP/level or grant another save vs negative effect. Skills usable within 30'; rolled d%.","thac0":[19,19,19,19,19,17,17,17,17,17,14,14,14,14],"saves":[[12,13,12,15,14],[12,13,12,15,14],[12,13,12,15,14],[12,13,12,15,14],[12,13,12,15,14],[10,11,10,13,11],[10,11,10,13,11],[10,11,10,13,11],[10,11,10,13,11],[10,11,10,13,11],[7,8,7,10,7],[7,8,7,10,7],[7,8,7,10,7],[7,8,7,10,7]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,1,2,3,4,5],"naturalACBonus":2,"skills":{"DM":{"name":"Detect magic","description":"1 turn concentration; failed checks can be re-attempted; referee rolls; player does not know if object is magical"},"OC":{"name":"Open/close","description":"Magically opens or closes unlocked door/portal/lid etc.; holds for 1 round/level; once per portal"},"RF":{"name":"Rally/fear","description":"Rally counters magical fear effects; Fear forces enemies to make a morale check; once per turn"},"RM":{"name":"Read magic","description":"Decipher magical scripts and runes; failed attempts cannot be retried until mage gains a level"},"SU":{"name":"Suggestion","description":"Words take supernatural potency; persons up to mage's level in HD must save vs spells or follow suggestion for 1 round/level; subject later realises they were tricked; once per turn; auto-save if suggestion would endanger subject"}},"skillChanceByLevel":{"DM":[75,80,83,85,87,90,92,93,94,95,96,97,98,99],"OC":[30,35,40,45,50,55,60,65,70,75,80,85,90,95],"RF":[20,23,25,26,35,45,55,65,70,75,80,85,90,95],"RM":[50,55,60,65,70,75,80,83,86,90,92,95,98,99],"SU":[20,23,25,26,35,45,55,65,70,75,80,85,90,95]},"special":["Arcane magic: cannot memorize spells; cast arcane spells from scrolls only; magical research any level; create magic items from 9th level; can use arcane scrolls and wands","Combat: daggers, short swords, staves, swords; no armour or shields","Healing: 1/day, takes 1 turn: cures 1 HP per level OR grants another save vs negative effect (e.g. curse or poison)","Mage armour: +2 bonus to Armour Class","Mage's staff: normal staff can harm creatures immune to mundane attacks; 1/day emit light in 30' radius for 1 turn per level","Scribing scrolls: can create scrolls of arcane spells at any level","Skills (within 30', rolled d%): Detect Magic (DM), Open/Close (OC), Rally/Fear (RF), Read Magic (RM), Suggestion (SU)","At 11th level: build stronghold (often great tower); 1d6 apprentices of levels 1-3 arrive to study"],"alignments":["Lawful","Neutral","Chaotic"]},"Dragonborn":{"source":"Batch 6 \u2014 OSE Campaign Compendium #3 (demihuman class)","type":"Demihuman","martialCategory":"martial","requirements":{"CON":9,"INT":9},"primeRequisite":["STR"],"hd":"d8","maxLevel":10,"armor":["Any"],"weapons":["Any"],"languages":["Alignment","Common","Dragon"],"note":"Draconic Bloodline: roll d10 at creation to determine dragon affinity and breath weapon type/shape. Breath weapon frequency for demihuman class: 3x/day (vs race version: 1x/day).","thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[12,13,14,13,16],[12,13,14,13,16],[12,13,14,13,16],[10,11,12,11,14],[10,11,12,11,14],[10,11,12,11,14],[8,9,10,8,12],[8,9,10,8,12],[8,9,10,8,12],[6,7,8,6,10]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"draconicBloodlineTable":{"note":"Roll d10 at creation","1-2":{"colour":"Black","damage":"Acid","shape":"Line","area":"5' wide, 30' long"},"3-4":{"colour":"Blue","damage":"Lightning","shape":"Line","area":"5' wide, 30' long"},"5-6":{"colour":"Green","damage":"Poison","shape":"Cloud","area":"10' wide, 15' long"},"7-8":{"colour":"Red","damage":"Fire","shape":"Cone","area":"15' wide at far end, 20' long"},"9-10":{"colour":"White","damage":"Cold","shape":"Cone","area":"15' wide at far end, 20' long"}},"special":["Breath weapon: 3x/day; damage = half current HP (rounded up); all in area affected; save vs breath for half damage; shape/type per Draconic Bloodline","Combat: any weapons and armour","Draconic resistance: +2 saves vs damage type of own breath weapon","Dragon affinity: +1 to reaction rolls when encountering dragons","Dragon-affecting magic: affected by spells/items that specifically target dragons","Scales: natural +1 bonus to Armour Class","At 9th level: create stronghold attracting dragonborn of same clan; other clans generally friendly; may collaborate in war/disaster; may only hire dragonborn mercenaries (any race specialists/retainers)"],"alignments":["Lawful","Neutral","Chaotic"]},"Goblin":{"source":"Batch 6 \u2014 OSE Campaign Compendium #1 (demihuman class)","type":"Demihuman","martialCategory":"semiMartial","requirements":{"DEX":9},"primeRequisite":["DEX","STR"],"hd":"d6","maxLevel":8,"armor":["Any appropriate to size","Shields"],"weapons":["Any appropriate to size (no longbows, no two-handed swords)"],"languages":["Alignment","Common","Goblin","language of wolves"],"thac0":[19,19,19,17,17,17,14,14],"saves":[[8,9,10,13,12],[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8],[4,5,6,7,8]],"hdCount":[1,2,3,4,5,6,7,8],"hdBonus":[0,0,0,0,0,0,0,0],"special":["Combat: any size-appropriate armour and weapons; armour must be tailored to small size; no longbows or two-handed swords","Defensive bonus: +2 AC vs large opponents (greater than human-sized)","Detect construction tricks: 2-in-6 when searching","Infravision 60'","Resilience: CON-based bonus to saves vs poison, spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Stealth: 3-in-6 move silently underground","Wolf affinity: speak to wolves including dire wolves; +1 reaction rolls with wolves; reaction 9+ wolf consents to being ridden as mount","Size: small; armour must be tailored","At 8th level: establish stronghold (above or below ground); attract 2d6 goblins of own clan; goblins of other clans generally friendly; clans may collaborate in war/disaster; may only hire goblin mercenaries; specialists/retainers of any race (uncommon)"],"alignments":["Lawful","Neutral","Chaotic"]},"Gargantua":{"source":"Batch 6 \u2014 OSE Campaign Compendium #1 (demihuman class)","type":"Demihuman","martialCategory":"martial","requirements":{"CON":9,"STR":9},"primeRequisite":["CON","STR"],"hd":"d10","maxLevel":10,"armor":["Any appropriate to size","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"thac0":[19,19,19,17,17,17,14,14,14,12],"saves":[[8,9,10,13,12],[8,9,10,13,12],[8,9,10,13,12],[6,7,8,10,10],[6,7,8,10,10],[6,7,8,10,10],[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8],[2,3,4,4,6]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,3],"special":["Combat: any armour (tailored to large size) and any weapons","Two-handed melee weapons: can wield any two-handed melee weapon (e.g. battle axe) with only one hand","Open doors: treated as next highest STR category when opening doors","Resilience: CON-based bonus to saves vs poison, spells, wands/rods/staves (CON 6-: +0; 7-10: +2; 11-14: +3; 15-17: +4; 18: +5)","Rock throwing: 1d6 damage; ranges 5'-50' (short) / 51'-100' (medium) / 101'-150' (long)","Size: large (~7.5' tall, 550 lbs); all armour must be tailored","At 9th level: option to create stronghold forming basis of gargantua community (near humans or in wilderness, typically forested/hilly)"],"alignments":["Lawful","Neutral","Chaotic"]},"Mutoid":{"source":"Batch 6 \u2014 OSE Campaign Compendium #3 (demihuman class)","type":"Demihuman","martialCategory":"semiMartial","requirements":{},"primeRequisite":["DEX"],"hd":"d6","maxLevel":8,"armor":["Leather","Shields"],"weapons":["One-handed melee weapons","All missile weapons"],"languages":["Alignment","Common"],"thac0":[19,19,19,19,17,17,17,17],"saves":[[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,11,12],[8,9,10,11,12],[8,9,10,11,12],[8,9,10,11,12]],"hdCount":[1,2,3,4,5,6,7,8],"hdBonus":[0,0,0,0,0,0,0,0],"mutationsTable":[{"d8":1,"mutation":"Beast ears","effect":"3-in-6 chance to hear noises"},{"d8":2,"mutation":"Beast eyes","effect":"Infravision to 60'"},{"d8":3,"mutation":"Clawed hand","effect":"Unarmed attack for 1d6 damage"},{"d8":4,"mutation":"Gills","effect":"Breathe underwater"},{"d8":5,"mutation":"Pincer","effect":"Unarmed attack 1d3 damage; locks on victim causing 1d3 damage per round; save vs paralysis to escape"},{"d8":6,"mutation":"Scales","effect":"+2 bonus to Armour Class"},{"d8":7,"mutation":"Spring legs","effect":"Jump up to 30' forwards; +1 to attack; if wielding impaling weapon (e.g. spear), counts as charge and inflicts double damage on hit"},{"d8":8,"mutation":"Sticky tongue","effect":"Grab object up to 15' away and pull to mouth; can be used as melee attack: bite inflicts 1d3 damage"}],"skillChanceByLevel":{"HS":[10,15,20,25,30,36,45,55],"MI":[35,40,50,60,70,80,90,95],"MS":[20,25,30,35,40,45,55,65],"PP":[20,25,30,35,40,45,55,65]},"skillKeys":{"HS":"Hide in shadows % (must be motionless)","MI":"Mimicry % (mimic sound of any monster/animal; -20% to mimic specific individual)","MS":"Move silently %","PP":"Pick pockets % (-5% per level of victim above 5th; roll >2x% = noticed)"},"special":["Back-stab: +4 to hit unaware opponent from behind; doubles damage dealt","Combat: leather, shields, one-handed melee weapons, all missile weapons; no armour heavier than leather","Mutations: roll twice on d8 Mutations table at creation (re-roll duplicates); two attack mutations may both be used each round (e.g. clawed hand + pincer)","Skills (rolled d%): Hide in Shadows (HS), Mimicry (MI), Move Silently (MS), Pick Pockets (PP)","At 8th level: establish secret lair; attract 2d6 1st-level mutoid apprentices (serve reliably but not replaced if arrested/killed); may start a Thieves' Guild"],"alignments":["Lawful","Neutral","Chaotic"]},"Tiefling":{"source":"Batch 6 \u2014 OSE Campaign Compendium #3 (demihuman class)","type":"Demihuman","martialCategory":"semiMartial","requirements":{"INT":9},"primeRequisite":["CHA","DEX"],"hd":"d6","maxLevel":10,"armor":["Leather","Chainmail","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"thac0":[19,19,19,19,17,17,17,17,14,14],"saves":[[11,12,12,15,14],[11,12,12,15,14],[11,12,12,15,14],[11,12,12,15,14],[9,10,10,13,12],[9,10,10,13,12],[9,10,10,13,12],[9,10,10,13,12],[7,8,8,11,10],[7,8,8,11,10]],"hdCount":[1,2,3,4,5,6,7,8,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2],"fiendishAppearanceTable":["3 or 6 digits on each hand","Black or red eyes, no whites/pupils","Fangs or needle-like teeth","Furry or feathered skin","Forked tongue","Goat-like hooves","Long, thin tail","Scaly or ridged skin","Skin tinted red, green, or blue","Small horns on forehead/temples"],"fiendishGiftsTable":["Cast darkness once/day","Cast detect invisible once/day","Cast detect magic once/day","Cast magic missile once/day","Cast mirror image once/day","Cast ventriloquism once/day","Cold resistance (half damage)","Fire resistance (half damage)","+2 bonus to saves versus paralysis","+2 bonus to saves versus poison"],"skillChanceByLevel":{"BE":[30,35,40,45,50,53,56,60,65,70],"HN":["1-2","1-2","1-3","1-3","1-3","1-3","1-4","1-4","1-4","1-4"],"HS":[10,15,20,25,30,36,45,55,65,75],"MS":[20,25,30,35,40,45,55,65,75,85]},"skillKeys":{"BE":"Beguile % (persons up to tiefling's level in HD save vs spells or believe; lasts 1 round/level; realise afterwards; once per day per person)","HN":"Hear noise (rolled on 1d6; success if within range)","HS":"Hide in shadows % (must be motionless)","MS":"Move silently %"},"special":["Combat: leather, chainmail, shields, any weapons","Fiendish Heritage: roll twice on Fiendish Appearance table (d10) and twice on Fiendish Gifts table (d10) at creation; re-roll duplicates","Holy water vulnerability: vulnerable to damage from holy water","Infravision 60'","Skills (rolled d% except HN on 1d6): Beguile (BE), Hear Noise (HN), Hide in Shadows (HS), Move Silently (MS)","At 9th level: establish a den; attract 2d6 1st-level thief or tiefling apprentices; serve reliably but not replaced if arrested/killed; may start a Thieves' Guild"],"alignments":["Lawful","Neutral","Chaotic"]},"ChaosKnight":{"source":"Batch 7 \u2014 Demonic Grimoire","type":"Standard","martialCategory":"martial","requirements":{"CHA":9},"primeRequisite":["STR","WIS"],"hd":"d8","maxLevel":14,"armor":["Any","Shields"],"weapons":["Any"],"languages":["Alignment","Common"],"note":"Must be Chaotic. If alignment ever changes, loses all class abilities and becomes fighter of same level (may regain via mighty sacrifice). +5% XP if one prime req \u226513; +10% if both STR and WIS \u226516. Spells from L9 (cleric list, typically reversed versions). Vow of Bondage: max 1 magical armour, 1 magical shield, 1 magical melee weapon; must spend at least 10% of income on sacrifices to patron.","thac0":[19,19,19,17,17,17,14,14,14,12,12,12,10,10],"saves":[[10,11,12,13,14],[10,11,12,13,14],[10,11,12,13,14],[8,9,10,11,12],[8,9,10,11,12],[8,9,10,11,12],[6,7,8,8,10],[6,7,8,8,10],[6,7,8,8,10],[4,5,6,6,8],[4,5,6,6,8],[4,5,6,6,8],[2,3,4,3,6],[2,3,4,3,6]],"hdCount":[1,2,3,4,5,6,7,8,9,9,9,9,9,9],"hdBonus":[0,0,0,0,0,0,0,0,0,2,4,6,8,10],"spellsPerDay":[[],[],[],[],[],[],[],[],[1],[2],[2,1],[2,2],[2,2,1],[3,2,1]],"spellList":"Cleric spell list (typically reversed versions)","commandUndeadFromLevel":3,"commandingTable":{"note":"Roll 2d6; compare vs HD of undead. C=commanded (obeys for 1 round/level), number=minimum roll needed, -=fails.","byLevel":{"3":{"1":7,"2":9,"2*":11,"3":"-","4":"-","5":"-","6":"-","7-9":"-"},"4":{"1":"C","2":7,"2*":9,"3":11,"4":"-","5":"-","6":"-","7-9":"-"},"5":{"1":"C","2":"C","2*":7,"3":9,"4":11,"5":"-","6":"-","7-9":"-"},"6":{"1":"C","2":"C","2*":"C","3":7,"4":9,"5":11,"6":"-","7-9":"-"},"7":{"1":"C","2":"C","2*":"C","3":"C","4":7,"5":9,"6":11,"7-9":"-"},"8":{"1":"C","2":"C","2*":"C","3":"C","4":"C","5":7,"6":9,"7-9":11},"9":{"1":"C","2":"C","2*":"C","3":"C","4":"C","5":"C","6":7,"7-9":9},"10":{"1":"C","2":"C","2*":"C","3":"C","4":"C","5":"C","6":"C","7-9":7},"11+":{"1":"C","2":"C","2*":"C","3":"C","4":"C","5":"C","6":"C","7-9":"C"}}},"special":["Alignment: must be Chaotic; if changes loses class (becomes fighter same level; may regain via mighty sacrifice)","Combat: any weapons and armour","Commanding the undead: from 3rd level (like turn undead but commands instead of turns; commanded undead obey for 1 round per level; see commanding table)","Divine magic: from 9th level, pray for spells (cleric list, typically reversed versions); holy symbol required; patron disfavour applies","Infernal steed: from 4th level, may summon infernal steed (AC 5 [14], 5+5 HD, move 180'/60'); if it dies, another may not be summoned for 10 years","Life drain: 1/day, make a life-draining melee attack; if hit, target loses 2 HP per chaos knight level (in addition to normal damage); chaos knight healed by amount drained","Unholy resistance: immune to all disease","Vow of Bondage: max 1 magical armour, 1 magical shield, 1 magical melee weapon; must spend at least 10% of income on sacrifices to patron","At 9th level: build stronghold with patron's permission; may be granted title of Baron/Baroness"],"alignments":["Chaotic"]},"Mycelian":{"source":"Batch 7 \u2014 OSE Campaign Compendium (demihuman class)","type":"Demihuman","martialCategory":"nonMartial","requirements":{"CON":9},"primeRequisite":["STR"],"hd":"d8","maxLevel":6,"armor":["Shields only"],"weapons":["Any"],"languages":["Alignment","Common","Deepcommon"],"note":"Mycelians grow 1' per level (4' at L1 to 9' at L6, max). No armour \u2014 rely on natural AC. Unarmed attacks with club-like fists. Fungal spores 1/day/level: pacifying (save vs poison or passive 1 round/level); hallucinogenic from L4 (save vs poison or terrified visions; d6: 1-2 flee in terror, 3-4 cower and babble, 5-6 attempt to kill nearest creature). Cannot eat/sleep normally \u2014 8hr moist earth contact required.","naturalACByLevel":[6,5,4,3,3,3],"naturalACDisplayByLevel":["6 [13]","5 [14]","4 [15]","3 [16]","3 [16]","3 [16]"],"unarmedDamageByLevel":["1d4","2d4","3d4","4d4","5d4","6d4"],"thac0":[19,19,19,17,17,17],"saves":[[9,11,9,13,12],[9,11,9,13,12],[9,11,9,13,12],[7,9,7,11,10],[7,9,7,11,10],[7,9,7,11,10]],"hdCount":[1,2,3,4,5,6],"hdBonus":[0,0,0,0,0,0],"special":["Combat: shields only (no armour); any weapons; unarmed fist attacks deal damage by level (L1:1d4, L2:2d4, L3:3d4, L4:4d4, L5:5d4, L6:6d4)","Fungal spores (pacifying): 1/day per level, spray at single living target within 20' (human/demihuman any level or humanoid monster up to 4+1 HD); save vs poison or completely passive 1 round per level","Fungal spores (hallucinogenic): from 4th level, may use spore spray for hallucinations instead; target saves vs poison or suffers terrifying visions for 1 round/level; d6 reaction: 1-2 flee in terror, 3-4 cower and babble, 5-6 attempt to kill nearest creature","Growth: 4' tall at L1; grows 1'/level to max 9' at L6","Infravision 60'","Light sensitivity: -2 attack, -1 AC in bright light","Natural Armour Class: tough skin grants natural AC (L1:6[13], L2:5[14], L3:4[15], L4-6:3[16]); cannot wear armour","Rest and sustenance: no eating/sleeping; require 8 hours/day in contact with moist earth; missing = lose 1 HP/day until fulfilled","Telepathic communication: mouthless; communicate telepathically with any sentient creature within 120'; can converse in any language known","At 6th level: found subterranean stronghold; attract mycelians as subjects; becomes their king; can create fungal zombies (takes 1 week per zombie; implant spores into humanoid corpse; zombie stats: AC 8[11], HD 2 (9hp), Att 1\u00d7weapon 1d8 or by weapon, THAC0 18[+1], MV 60'(20'), SV D12 W13 P14 B15 S16(1), ML 12, AL Neutral, XP 20; always lose initiative)"],"alignments":["Lawful","Neutral","Chaotic"]}},"multiclassing":{"note":"Rules TBD \u2014 awaiting player-provided multiclassing rules."},"magicalItemChances":{"note":"TBD \u2014 awaiting class/level table"},"languages":{"note":"TBD \u2014 campaign-custom language list pending"},"customWeapons":{"note":"Complete custom weapons list from Middle Sea campaign. Categories used for weapon proficiency tracking. Qualities: Blunt=usable by blunt-weapon-only classes; Monk=usable by monks with special rules; Ninja=has ninja-specific rules; Charge=double damage on charge; Brace=set vs charge; Slow=strikes last in round; Reload=must reload between shots.","qualityDescriptions":{"Blunt":"Usable by classes restricted to blunt weapons (Cleric, Acolyte, etc.)","Brace":"Can be set against a charge; if set and attacker charges, deal double damage","Charge":"If charging, deal double damage","Monk":"Has special rules for monks \u2014 see individual weapon","Ninja":"Has special rules for ninja \u2014 see individual weapon","Reload":"Must spend 1 round reloading between shots","Slow":"Strikes last in round (after all non-slow weapons)","Two-handed":"Requires both hands; cannot use shield","One- or Two-handed":"Can be used either one-handed or two-handed (different damage)"},"weapons":[{"name":"Bastard Sword","cost":"120 cp","damage":"1d8 (one-handed) / 2d4 (two-handed)","qualities":["Melee","One- or Two-handed"],"category":"Sword","nations":["Keln","Principality of Arlence"]},{"name":"Battle Axe","cost":"60 cp","damage":"1d8","qualities":["Melee","Slow","Two-handed"],"category":"Battle axe","nations":["Keln","Halls of Throle","Land of the Thanes","Mauretania","Nordvanir","Principality of Arlence"]},{"name":"Bo Staff","cost":"2 cp","damage":"1d4","qualities":["Blunt","Melee","Monk","Two-handed"],"category":"Staff","nations":["Ka-Li"],"note":"Monks may use as if fighting with two weapons."},{"name":"Broadsword (one-handed)","cost":"80 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Keln","Land of the Denaari","Land of the Thanes","Narseh","Nordvanir"]},{"name":"Broadsword (two-handed)","cost":"150 cp","damage":"1d10","qualities":["Melee","Slow","Two-handed"],"category":"Two-handed sword","nations":["Keln","Land of the Denaari","Land of the Thanes","Narseh","Nordvanir"],"note":"Wielded by a barbarian: gain extra immediate attack on natural roll of 19."},{"name":"Chakram","cost":"50 cp","damage":"1d4","qualities":["Melee","Missile","Monk"],"missileRanges":["5'-50'","51'-100'","101'-150'"],"category":"Dagger","nations":["Ka-Li"]},{"name":"Cicada Wing Sword","cost":"125 cp","damage":"1d6","qualities":["Melee","Monk","Slow","Two-handed"],"category":"Two-handed sword","nations":["Ka-Li"],"note":"Not slow in the hands of a monk; monks may use as if fighting with two weapons."},{"name":"Claymore","cost":"190 cp","damage":"1d10","qualities":["Melee","Slow","Two-handed"],"category":"Two-handed sword","nations":["Keln"],"note":"If specialized by a fighter, damage die becomes exploding (on a 10, roll again and add)."},{"name":"Club","cost":"1 cp","damage":"1d4","qualities":["Blunt","Melee"],"category":"Club","nations":["All"]},{"name":"Crossbow","cost":"100 cp (5 cp per 10 bolts)","damage":"1d6","qualities":["Missile","Reload","Slow","Two-handed"],"missileRanges":["5'-80'","81'-160'","161'-240'"],"category":"Crossbow","nations":["Ecabatana","Massai","Narseh","Ka-Li","Karth","Keln","Principality of Arlence","Thessadonia"]},{"name":"Da-Dao","cost":"150 cp","damage":"1d10","qualities":["Melee","Slow"],"category":"Sword","nations":["Ka-Li"]},{"name":"Dagger / Knife / Dirk","cost":"6 cp","damage":"1d4","qualities":["Melee","Missile"],"missileRanges":["5'-10'","11'-20'","21'-30'"],"category":"Dagger","nations":["All"]},{"name":"Dha","cost":"80 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Ka-Li"]},{"name":"Dwarven Warhammer","cost":"180 cp","damage":"1d8","qualities":["Blunt","Melee"],"category":"War hammer","nations":["Halls of Throle"]},{"name":"Falcata","cost":"80 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Land of the Thanes","Lusatania","Mauretania","Narseh"]},{"name":"Falx","cost":"140 cp","damage":"1d8 (one-handed) / 2d4 (two-handed)","qualities":["Melee","One- or Two-handed"],"category":"Sword","nations":["Narseh"]},{"name":"Flail","cost":"65 cp","damage":"1d6","qualities":["Blunt","Melee","Slow"],"category":"Mace","nations":["Keln","Land of the Thanes","Narseh","Principality of Arlence"],"note":"Ignores 1 AC bonus from shields."},{"name":"Gladius","cost":"50 cp","damage":"1d6","qualities":["Melee"],"category":"Short sword","nations":["Karth","Mauretania"]},{"name":"Greatsword","cost":"190 cp","damage":"1d10","qualities":["Melee","Slow","Two-handed"],"category":"Two-handed sword","nations":["Keln"],"note":"If specialized by a fighter, damage die becomes exploding (on a 10, roll again and add)."},{"name":"Hand Axe","cost":"5 cp","damage":"1d6","qualities":["Melee","Missile"],"missileRanges":["5'-10'","11'-20'","21'-30'"],"category":"Hand axe","nations":["All"]},{"name":"Hook Swords","cost":"150 cp (each)","damage":"1d4","qualities":["Melee","Monk"],"category":"Sword","nations":["Ka-Li"],"note":"Monks may fight with two. Designed for control/trapping/manipulation. When monk wields hook swords, humanoid opponents suffer -1 to melee attack rolls."},{"name":"Hyanda Elven Sword","cost":"200 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Vala Aedain"],"note":"Elves and half-elves receive +1 to initiative when wielding this sword."},{"name":"Javelin","cost":"2 cp","damage":"1d4","qualities":["Missile"],"missileRanges":["5'-30'","31'-60'","61'-90'"],"category":"Javelin","nations":["All"]},{"name":"Jian","cost":"90 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Ka-Li"]},{"name":"Ka-Li Stick","cost":"1 cp (each)","damage":"1d4","qualities":["Blunt","Melee","Monk"],"category":"Club","nations":["Ka-Li"],"note":"Monks may fight with two. While wielding Ka-Li sticks, monk retains normal unarmed extra attacks per round."},{"name":"Ka-Li War Axe","cost":"10 cp","damage":"1d4+2","qualities":["Melee"],"category":"Hand axe","nations":["Ka-Li"]},{"name":"Katana","cost":"100 cp","damage":"1d8 (one-handed) / 2d4 (two-handed) / 1d10 (two-handed by ninja or samurai)","qualities":["Melee","Ninja","One- or Two-handed"],"category":"Sword","nations":["Ka-Li"]},{"name":"Khopesh","cost":"65 cp","damage":"1d6","qualities":["Melee"],"category":"Short sword","nations":["Pharos"]},{"name":"Kopis","cost":"75 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Massai","Pharos","Thessadonia"]},{"name":"Kusari Gama","cost":"100 cp","damage":"1d4","qualities":["Melee","Ninja"],"category":"Hand axe","nations":["Ka-Li"],"note":"Ninja can use the chain to disarm opponents on a successful melee attack."},{"name":"Kyoketsu Shoge","cost":"90 cp","damage":"1d4","qualities":["Melee","Ninja"],"category":"Dagger","nations":["Ka-Li"],"note":"Requires proficiency to use, except for ninja. Ninja can attack from 10 feet."},{"name":"Lance","cost":"20 cp","damage":"1d6 (or 1d8 when wielded by knights)","qualities":["Charge","Melee"],"category":"Lance","nations":["Keln","Nethia"]},{"name":"Liuyedao (Willow Leaf)","cost":"85 cp","damage":"1d6","qualities":["Melee"],"category":"Sword","nations":["Ka-Li"]},{"name":"Long Bow","cost":"35 cp (4 cp per 10 arrows)","damage":"1d6","qualities":["Missile","Ninja","Two-handed"],"missileRanges":["5'-70'","71'-140'","141'-210'"],"category":"Long bow","nations":["Ka-Li","Keln","Nordvanir","Principality of Arlence","Vala Aedain"]},{"name":"Longsword","cost":"120 cp","damage":"1d10","qualities":["Melee","Two-handed"],"category":"Two-handed sword","nations":["Keln","Nordvanir","Principality of Arlence"],"note":"Two-handed sword, but faster than a greatsword or claymore (not Slow)."},{"name":"Mace","cost":"45 cp","damage":"1d6","qualities":["Blunt","Melee"],"category":"Mace","nations":["Ecabatana","Keln","Lands of Axumar","Land of the Thanes","Narseh","Nethia","Nordvanir","Pharos","Principality of Arlence","Shireland"]},{"name":"Main Gauche","cost":"10 cp","damage":"1d4","qualities":["Melee"],"category":"Dagger","nations":["Principality of Arlence"],"note":"If proficient, a character parrying gains an extra +1 to AC."},{"name":"Mbuun","cost":"20 cp","damage":"1d6","qualities":["Melee"],"category":"Sword","nations":["Lands of Axumar"]},{"name":"Meteor Hammer","cost":"90 cp","damage":"1d6","qualities":["Blunt","Melee","Monk"],"category":"NA","nations":["Ka-Li"],"note":"Must be proficient to use, except for monks. Monks can attack from 10 feet."},{"name":"Nekode","cost":"8 cp (per pair)","damage":"1d3","qualities":["Melee","Ninja"],"category":"NA","nations":["Ka-Li"],"note":"Adds +2 bonus to DEX check when climbing. Classes with climb sheer surfaces gain +5% bonus."},{"name":"Ninja-to","cost":"80 cp","damage":"1d6","qualities":["Melee","Ninja"],"category":"Short sword","nations":["Ka-Li"]},{"name":"Pilum","cost":"7 cp","damage":"1d4","qualities":["Missile"],"missileRanges":["5'-20'","21'-40'","41'-60'"],"category":"Javelin","nations":["Karth"],"note":"On miss vs target with wooden shield: 50% chance it sticks in shield (shield useless until removed as action). Unusable after one throw (bends at iron shank)."},{"name":"Plumbata","cost":"3 cp","damage":"1d4","qualities":["Missile"],"missileRanges":["5'-25'","26'-50'","51'-75'"],"category":"Javelin","nations":["Karth"]},{"name":"Pole Arm","cost":"25 cp","damage":"1d10","qualities":["Brace","Melee","Slow","Two-handed"],"category":"Pole arm","nations":["Keln","Massai","Pharos","Principality of Arlence","Thessadonia"]},{"name":"Pugio","cost":"8 cp","damage":"1d3+1","qualities":["Melee"],"category":"Dagger","nations":["Karth"]},{"name":"Rapier","cost":"100 cp","damage":"1d6","qualities":["Melee"],"category":"Sword","nations":["Principality of Arlence"],"note":"Characters may add DEX bonus to attack and damage rolls instead of STR."},{"name":"Rope Dart","cost":"20 cp","damage":"1d4","qualities":["Melee","Monk"],"category":"NA","nations":["Ka-Li"],"note":"Must be proficient or a monk. Monks can attack from 10 feet. Deals x3 damage on a natural 20. Uses DEX modifier instead of STR to attack."},{"name":"Saber","cost":"70 cp","damage":"1d6","qualities":["Charge","Melee"],"category":"Sword","nations":["Principality of Arlence"]},{"name":"Sai","cost":"5 cp (10 cp matching pair)","damage":"1d4","qualities":["Blunt","Melee","Monk","Ninja"],"category":"Dagger","nations":["Ka-Li"],"note":"Monks and ninja may fight with two. A proficient character (or monk/ninja) parrying gains +1 to AC."},{"name":"Scimitar","cost":"70 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Ecabatana","Nethia"]},{"name":"Segmented Sword","cost":"110 cp","damage":"1d4","qualities":["Melee"],"category":"Sword","nations":["Ka-Li"],"note":"Must be proficient to use. Ignores 1 AC bonus from shields."},{"name":"Short Bow","cost":"25 cp (3 cp per 10 arrows)","damage":"1d6","qualities":["Missile","Ninja","Two-handed"],"missileRanges":["5'-50'","51'-100'","101'-150'"],"category":"Short bow","nations":["All (except Undersea)"]},{"name":"Short Sword","cost":"50 cp","damage":"1d6","qualities":["Melee"],"category":"Short sword","nations":["All"]},{"name":"Shotel","cost":"75 cp","damage":"1d8","qualities":["Melee"],"category":"Short sword","nations":["Lands of Axumar"]},{"name":"Shuriken","cost":"4 cp per 5","damage":"1d4","qualities":["Missile","Ninja"],"missileRanges":["5'-10'","11'-20'","21'-30'"],"category":"NA","nations":["Ka-Li"],"note":"Ninja deal double damage on a natural 19 or 20."},{"name":"Sickle Sword","cost":"65 cp","damage":"1d6","qualities":["Melee"],"category":"Sword","nations":["Lands of Axumar"]},{"name":"Sling","cost":"1 cp","damage":"1d4","qualities":["Blunt","Missile"],"missileRanges":["5'-40'","41'-80'","81'-160'"],"category":"Sling","nations":["All (except Undersea)"]},{"name":"Spatha","cost":"80 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Karth","Land of the Thanes"]},{"name":"Spear","cost":"2 cp","damage":"1d6","qualities":["Brace","Melee","Missile"],"missileRanges":["5'-20'","21'-40'","41'-60'"],"category":"Spear","nations":["All"]},{"name":"Staff","cost":"1 cp","damage":"1d4","qualities":["Blunt","Melee","Slow","Two-handed"],"category":"Staff","nations":["All (except Undersea)"]},{"name":"Talwar","cost":"70 cp","damage":"1d4+2","qualities":["Melee"],"category":"Sword","nations":["Nethia"]},{"name":"Tessen","cost":"12 cp","damage":"1d3","qualities":["Melee"],"category":"NA","nations":["Ka-Li"],"note":"Grants samurai a +1 bonus to AC."},{"name":"Tie Chui","cost":"50 cp","damage":"1d8","qualities":["Blunt","Melee","Slow","Two-handed"],"category":"War hammer","nations":["Ka-Li"]},{"name":"Tonfa","cost":"4 cp (each)","damage":"1d4","qualities":["Blunt","Melee","Monk"],"category":"Club","nations":["Ka-Li"],"note":"Monks may fight with two. A monk parrying gains +1 to AC."},{"name":"Trident","cost":"8 cp","damage":"1d6+1","qualities":["Melee"],"category":"Spear","nations":["Karth","Undersea"]},{"name":"Wakizashi","cost":"60 cp","damage":"1d6","qualities":["Melee"],"category":"Short sword","nations":["Ka-Li"]},{"name":"War Hammer","cost":"50 cp","damage":"1d6","qualities":["Blunt","Melee"],"category":"War hammer","nations":["Keln"]},{"name":"Whip Chain","cost":"65 cp","damage":"1d6","qualities":["Blunt","Melee"],"category":"NA","nations":["Ka-Li"],"note":"Must be proficient. Can attack from 10 feet."},{"name":"Xiphos","cost":"50 cp","damage":"1d6","qualities":["Melee"],"category":"Short sword","nations":["Massai","Pharos","Thessadonia"]},{"name":"Yue Fu","cost":"18 cp","damage":"1d8","qualities":["Melee","Slow","Two-handed"],"category":"Battle axe","nations":["Ka-Li"]},{"name":"Zhibedao","cost":"80 cp","damage":"1d8","qualities":["Melee"],"category":"Sword","nations":["Ka-Li"]}],"categorySummary":{"Battle axe":["Battle Axe","Yue Fu"],"Club":["Club","Ka-Li Stick","Tonfa"],"Crossbow":["Crossbow"],"Dagger":["Chakram","Dagger / Knife / Dirk","Kyoketsu Shoge","Main Gauche","Pugio","Sai"],"Hand axe":["Hand Axe","Ka-Li War Axe","Kusari Gama"],"Javelin":["Javelin","Pilum","Plumbata"],"Lance":["Lance"],"Long bow":["Long Bow"],"Mace":["Flail","Mace"],"Pole arm":["Pole Arm"],"Short bow":["Short Bow"],"Short sword":["Gladius","Khopesh","Ninja-to","Shotel","Short Sword","Wakizashi","Xiphos"],"Sling":["Sling"],"Spear":["Spear","Trident"],"Staff":["Bo Staff","Staff"],"Sword":["Bastard Sword","Broadsword (one-handed)","Da-Dao","Dha","Falcata","Falx","Hook Swords","Hyanda Elven Sword","Jian","Katana","Kopis","Liuyedao","Mbuun","Rapier","Saber","Scimitar","Segmented Sword","Sickle Sword","Spatha","Talwar","Zhibedao"],"Two-handed sword":["Broadsword (two-handed)","Cicada Wing Sword","Claymore","Greatsword","Longsword"],"War hammer":["Dwarven Warhammer","Tie Chui","War Hammer"],"NA (no category / exotic)":["Meteor Hammer","Nekode","Rope Dart","Shuriken","Tessen","Whip Chain"]}},"customArmor":{"note":"Complete custom armour list. AC values are descending (lower = better). Categories: Leather (AC 6-8), Chainmail (AC 5-6), Plate mail (AC 2-4). Shields add bonus to AC. Some armour has size/class restrictions.","armorCategories":{"Leather":"Wearable by leather-or-better classes","Chainmail":"Wearable by chainmail-or-better classes","Plate mail":"Wearable by plate mail classes","Shield":"AC bonus added to worn armour"},"armor":[{"name":"Breast Plate","cost":"180 cp","ac":4,"category":"Plate mail","nations":["Keln","Land of the Thanes","Principality of Arlence","Shireland"]},{"name":"Brigandine","cost":"220 cp","ac":6,"category":"Leather","nations":["Keln","Principality of Arlence"]},{"name":"Do-Maru","cost":"160 cp","ac":6,"category":"Leather","nations":["Ka-Li"]},{"name":"Full Plate","cost":"400 cp","ac":2,"category":"Plate mail","nations":["Keln","Narseh","Nethia","Principality of Arlence"],"note":"Cannot add DEX bonus to AC."},{"name":"Haidate & Haramaki","cost":"40 cp","ac":7,"category":"Leather","nations":["Ka-Li"]},{"name":"Half Plate","cost":"300 cp","ac":3,"category":"Plate mail","nations":["Keln","Narseh","Nethia","Principality of Arlence","Shireland"],"note":"Max DEX bonus to AC of +1."},{"name":"Lamellar","cost":"160 cp","ac":6,"category":"Chainmail","nations":["All"]},{"name":"Leather","cost":"30 cp","ac":7,"category":"Leather","nations":["All"]},{"name":"Linothorax","cost":"25 cp","ac":7,"category":"Leather","nations":["Massai","Thessadonia"]},{"name":"Lorica Hamata","cost":"120 cp","ac":5,"category":"Chainmail","nations":["Karth"]},{"name":"Lorica Squamata","cost":"140 cp","ac":5,"category":"Chainmail","nations":["Karth"]},{"name":"Mail","cost":"120 cp","ac":5,"category":"Chainmail","nations":["Halls of Throle","Keln","Lands of the Denaari","Land of the Thanes","Narseh","Nethia","Nordvanir","Shireland"]},{"name":"Mithral Suit","cost":"15000 cp","ac":0,"category":"ANY","nations":["NA"],"note":"Can be worn by any class regardless of armour restrictions."},{"name":"Muscle Cuirass","cost":"110 cp","ac":4,"category":"Plate mail","nations":["Massai","Pharos","Thessadonia"]},{"name":"Padded Armor","cost":"20 cp","ac":8,"category":"Leather","nations":["All"]},{"name":"Phizajia","cost":"160 cp","ac":6,"category":"Leather","nations":["Ka-Li"]},{"name":"Scale Armor","cost":"140 cp","ac":5,"category":"Chainmail","nations":["Ecabatana","Nethia"]}],"shields":[{"name":"Buckler","cost":"8 cp","acBonus":1,"category":"Shield","nations":["Principality of Arlence"]},{"name":"Denaari Shield","cost":"20 cp","acBonus":2,"category":"Shield","nations":["Lands of the Denaari"]},{"name":"Dwarf Shield","cost":"40 cp","acBonus":2,"category":"Shield","nations":["Halls of Throle"],"note":"Grants +3 AC to shorter humanoids (dwarves, halflings, goblins, etc.)."},{"name":"Elven Shield","cost":"45 cp","acBonus":3,"category":"Shield","nations":["Vala Aedain"],"note":"Cannot be used by shorter humanoids (dwarves, halflings, gnomes, etc.)."},{"name":"Hoplon","cost":"30 cp","acBonus":2,"category":"Shield","nations":["Massai","Narseh","Pharos","Thessadonia"]},{"name":"Kite Shield","cost":"45 cp","acBonus":3,"category":"Shield","nations":["Keln"],"note":"Cannot be used by shorter humanoids (dwarves, halflings, gnomes, etc.)."},{"name":"Oval Shield","cost":"25 cp","acBonus":2,"category":"Shield","nations":["Ecabatana","Nethia"]},{"name":"Rattan Shield","cost":"12 cp","acBonus":1,"category":"Shield","nations":["Ka-Li"]},{"name":"Round Shield","cost":"20 cp","acBonus":2,"category":"Shield","nations":["Ecabatana","Lands of Axumar","Land of the Sakaethyn","Mauretania","Narseh","Lusatania","Nethia","Nordvanir"]},{"name":"Scutum","cost":"45 cp","acBonus":3,"category":"Shield","nations":["Karth"],"note":"Cannot be used by shorter humanoids (dwarves, halflings, gnomes, etc.)."}],"acCategoryMapping":{"none":9,"leather":{"min":6,"max":8,"examples":["Padded Armor (8)","Leather (7)","Haidate & Haramaki (7)","Linothorax (7)","Brigandine (6)","Do-Maru (6)","Lamellar (6)","Phizajia (6)"]},"chainmail":{"min":5,"max":6,"examples":["Lamellar (6)","Lorica Hamata (5)","Lorica Squamata (5)","Mail (5)","Scale Armor (5)"]},"plateMail":{"min":2,"max":4,"examples":["Breast Plate (4)","Muscle Cuirass (4)","Half Plate (3)","Full Plate (2)","Mithral Suit (0)"]}}}};
+const EXTRA_SHIELDS = [{"name": "Spike Shield", "cost": "25 cp", "acBonus": 2, "category": "Shield", "nations": ["Ecabatana", "Narseh", "Nethia"], "note": "Can melee attack for 1d4 damage."}, {"name": "Tedate", "cost": "10 cp", "acBonus": 1, "category": "Shield", "nations": ["Ka-Li"], "note": ""}];
+
+// ── SPELL LISTS ─────────────────────────────────────────────────────────────
+const SPELL_LISTS = {
+  "cleric": {
+    1:["Cure Light Wounds","Detect Evil","Detect Magic","Light","Protection from Evil","Purify Food and Water","Remove Fear","Resist Cold"],
+    2:["Bless","Charm Animal","Find Traps","Hold Person","Know Alignment","Resist Fire","Silence 15' Radius","Snake Charm","Speak with Animal","Warp Wood"],
+    3:["Continual Light","Cure Blindness","Cure Disease","Growth of Animals","Locate Object","Remove Curse","Striking"],
+    4:["Cure Serious Wounds","Create Water","Detect Lie","Dispel Magic","Neutralize Poison","Protection from Evil 10' Radius","Speak with Plants","Sticks to Snakes"],
+    5:["Commune","Create Food","Dispel Evil","Finger of Death","Insect Plague","Quest","Raise Dead","True Seeing"]
+  },
+  "magic-user": {
+    1:["Charm Person","Detect Magic","Floating Disc","Hold Portal","Light","Magic Missile","Protection from Evil","Read Languages","Read Magic","Shield","Sleep","Ventriloquism"],
+    2:["Continual Light","Detect Evil","Detect Invisible","ESP","Invisibility","Knock","Levitate","Locate Object","Mirror Image","Phantasmal Force","Web","Wizard Lock"],
+    3:["Clairvoyance","Clairaudience","Darkvision","Dispel Magic","Fireball","Fly","Hold Person","Invisibility 10' Radius","Lightning Bolt","Protection from Evil 10' Radius","Protection from Normal Missiles","Water Breathing"],
+    4:["Charm Monster","Confusion","Dimension Door","Growth of Plants","Hallucinatory Terrain","Massmorph","Plant Growth","Polymorph Others","Polymorph Self","Remove Curse","Wall of Fire","Wall of Ice","Wizard Eye"],
+    5:["Animate Dead","Cloudkill","Conjure Elemental","Contact Other Plane","Feeblemind","Hold Monster","Magic Jar","Pass-Wall","Telekinesis","Teleport","Transmute Rock to Mud","Wall of Stone"],
+    6:["Anti-Magic Shell","Control Weather","Death Spell","Disintegrate","Geas","Invisible Stalker","Lower Water","Move Earth","Part Water","Projected Image","Reincarnation","Stone to Flesh"]
+  },
+  "illusionist": {
+    1:["Auditory Illusion","Chromatic Orb","Color Spray","Dancing Lights","Darkness","Detect Illusion","Hypnosis","Light","Phantasmal Force","Wall of Fog"],
+    2:["Blur","Detect Magic","Fog Cloud","Hypnotic Pattern","Improved Phantasmal Force","Invisibility","Magic Mouth","Mirror Image","Misdirection","Ventriloquism"],
+    3:["Continual Darkness","Continual Light","Dispel Illusion","Fear","Hallucinatory Terrain","Illusionary Script","Invisibility 10' Radius","Non-Detection","Paralysation","Rope Trick"],
+    4:["Confusion","Emotion","Improved Invisibility","Massmorph","Minor Creation","Phantasmal Killer","Shadow Monsters","Vacancy"],
+    5:["Chaos","Demi-Shadow Monsters","Major Creation","Maze","Project Image","Seeming","Shadow Door","Summon Shadow"],
+    6:["Conjure Animals","Mass Suggestion","Mirage Arcane","Permanent Illusion","Programmed Illusion","Shades","True Sight","Veil"]
+  },
+  "druid": {
+    1:["Detect Magic","Detect Snares & Pits","Entangle","Faerie Fire","Invisibility to Animals","Locate Animals or Plants","Predict Weather","Purify Water","Speak with Animals"],
+    2:["Barkskin","Charm Person or Mammal","Create Water","Cure Light Wounds","Feign Death","Fire Trap","Heat Metal","Obscure","Produce Flame","Warp Wood"],
+    3:["Call Lightning","Cure Disease","Hold Animal","Neutralize Poison","Plant Growth","Protection from Fire","Pyrotechnics","Snare","Summon Insects","Tree"],
+    4:["Animal Summoning I","Command Plants","Control Temperature 10' Radius","Cure Serious Wounds","Dispel Magic","Hallucinatory Forest","Plant Door","Produce Fire","Protection from Lightning","Speak with Plants"],
+    5:["Animal Summoning II","Anti-Plant Shell","Control Winds","Insect Plague","Moonbeam","Pass Plant","Sticks to Snakes","Transmute Rock to Mud","Wall of Fire"]
+  }
+};
+
+// Sorcerer spells come from GD.classes.Sorcerer.spells
+// Cleric reversed versions for ChaosKnight
+const CLERIC_REVERSED = {
+  1:["Cause Light Wounds","Cause Fear","Curse","Darkness","Putrefy Food and Water","Cowardice","Resist Heat"],
+  2:["Blight","Hold Person","Cause Disease","Silence 15' Radius"],
+  3:["Cause Blindness","Cause Disease","Bestow Curse","Animate Dead"]
+};
+
+// Artificer gadget powers
+const GADGET_POWERS = [
+  "Acid Spray (1d6, 20' range, once/day)",
+  "Alchemical Firebomb (2d6 splash, 30' throw, once/day)",
+  "Arcane Lock (as spell, 1 use)",
+  "Climbing Claws (+2 climb, worn)",
+  "Clockwork Familiar (scout, 60' darkvision, 1 hp)",
+  "Concealed Blade (1d4, hidden on person)",
+  "Darkvision Goggles (60', worn)",
+  "Defensive Shield (AC +1, automatic when worn)",
+  "Electro-Gauntlet (1d6 lightning, touch, once/day)",
+  "Explosive Decoy (2d4 blast, 10' radius, set/trigger)",
+  "Flash Grenade (blind 1 round, 15' radius, once/day)",
+  "Flying Platform (move 60', carry 200 lbs, 10 min/day)",
+  "Fog Canister (as Wall of Fog, once/day)",
+  "Galvanic Pistol (1d8, 60' range, once/day, reload action)",
+  "Grappling Hook Launcher (50' range, anchor)",
+  "Gravity Boots (walk on walls/ceiling, 10 min/day)",
+  "Ice Projector (1d6 cold, 30' cone, once/day)",
+  "Infrasound Emitter (deafen, 20' radius, save or −1 attack)",
+  "Invisible Ink Decoder (read secret messages)",
+  "Jetpack (fly 60', 5 min/day, requires fuel)",
+  "Lens of True Seeing (detect invisible, illusions, 1 min/day)",
+  "Lightning Rod (attract/redirect one lightning attack/day)",
+  "Lockpick Automaton (+20% open locks)",
+  "Magnetic Boots (anchor to metal surfaces)",
+  "Mechanical Wings (glide, fall safely, 3/day)",
+  "Medic Kit (cure 1d6 HP, 3 uses/day)",
+  "Memory Crystal (record/replay 1 min of sound, 3 uses)",
+  "Mirror Shield (reflect one gaze attack/day)",
+  "Missile Deflector (negate one ranged attack/day, worn)",
+  "Night Scope (see in darkness as dim light, worn)",
+  "Oil Sprayer (grease 10' area, once/day)",
+  "Paralytic Dart (save or paralysed 1d4 rounds, 3/day)",
+  "Pneumatic Fist (1d8+STR, worn gauntlet)",
+  "Poison Injector (add poison to weapon, 1 dose/day)",
+  "Portable Winch (lift 500 lbs, motorised)",
+  "Pressure Suit (breathe underwater or vacuum, 1 hr/day)",
+  "Remote Detonator (trigger placed explosive from 100')",
+  "Rope Trick Device (as spell, once/day)",
+  "Self-Repairing Armour (regain 1 AC bonus once/combat)",
+  "Signal Flare (visible 2 miles, 3 uses)",
+  "Smoke Grenade (20' radius obscurement, 3/day)",
+  "Sonic Disruptor (stun, 15' cone, save or lose action)",
+  "Spider Gloves (climb any surface, 10 min/day)",
+  "Spring-Loaded Boots (jump 20' high or 40' far, 3/day)",
+  "Stabilising Gyroscope (immune to being knocked prone)",
+  "Steam Cannon (2d6, 60' line, once/day, bulky)",
+  "Stun Baton (1d4+stun, save or lose action, touch)",
+  "Telescopic Eye (see 10× normal distance, worn)",
+  "Throwing Blades (1d4, ×3/round, 30' range, 6 blades)",
+  "Torch Gauntlet (1d4 fire, touch, continuous light)",
+  "Tracking Device (locate tagged target within 1 mile)",
+  "Translating Earpiece (understand one language, worn)",
+  "Trap Detector (detect mechanical traps within 10')",
+  "Underwater Rebreather (breathe water 1 hr/day)",
+  "Voice Modulator (mimic any voice heard)",
+  "Wall Anchor (secure rope to any surface, instant)",
+  "Water Purifier (purify 1 gallon/minute)",
+  "Whistling Dagger (1d4+1, thrown, returns next round)"
+];
+
+const LANGUAGES=["Aquan","Kelnic","Denaariyen","Ecabatan","Kalinese","Karthan","Lusatanian","Massan","Mauretanian","Narsene","Nethian","Vaniric","Pharsic","Sakaethyn","Shirefolk Hobbittese","Thanic","Thessadonian","Throlic","High Elvish","Common","Deepcommon","Elvish","Dwarvish","Gnomish","Goblin","Kobold","Orcish","Dragon","Doppelgänger","Pixie","Bugbear","Gnoll","Dryad","language of wolves","language of burrowing mammals","language of earth elementals","secret language of spiders"];
+
+const RACIAL_MODS={AquaticElf:{INT:1,WIS:-1},Merfolk:{INT:-1,DEX:1},Satyr:{DEX:1,STR:-1},Triton:{INT:1,WIS:-1},Drow:{CON:-1,DEX:1},Duergar:{CHA:-1,CON:1},HalfOrc:{CHA:-2,CON:1,STR:1},WoodElf:{CHA:-1,WIS:1},PhaseElf:{CON:-1,DEX:1},Goblin:{DEX:1,STR:-1},Gargantua:{INT:-1,STR:1},Tiefling:{DEX:1,WIS:-1},Mycelian:{DEX:-1,WIS:1},Human:{},Gnome:{},HalfElf:{},Dragonborn:{},Mutoid:{},Halfling:{},Dwarf:{},Elf:{},Svirfneblin:{}};
+const RACES=Object.keys(RACIAL_MODS).sort();
+const SAVE_LABELS=["Death/Poison","Wands","Paralysis/Stone","Breath","Spells/Rods/Staves"];
+const ABILITY_MODS={3:-3,4:-2,5:-2,6:-1,7:-1,8:-1,9:0,10:0,11:0,12:0,13:1,14:1,15:1,16:2,17:2,18:3};
+const MC_ABILITIES=["Lancers","Pikemen","Longbows","Crossbows","Ranged Weapon","Offensive Spearmen","Defensive Spearmen","Swordsmen","Spellcasters"];
+
+let currentLevel=1, maxLevel=14;
+
+// ── SPELL LIST RESOLVER ──────────────────────────────────────────────────────
+function getSpellListForClass(clsKey, cd) {
+  // Sorcerer has its own list in JSON
+  if(clsKey === 'Sorcerer') return {list: GD.classes.Sorcerer.spells, type:'arcane', label:'Sorcerer'};
+
+  const note = ((cd.spellList||'')+(cd.note||'')).toLowerCase();
+
+  if(clsKey==='Cleric'||note.includes('cleric spell')) return {list:SPELL_LISTS.cleric, type:'divine', label:'Cleric'};
+  if(clsKey==='ChaosKnight') return {list:SPELL_LISTS.cleric, type:'divine', label:'Cleric (reversed)', reversed:true};
+  if(clsKey==='Paladin') return {list:SPELL_LISTS.cleric, type:'divine', label:'Cleric'};
+  if(clsKey==='Druid'||note.includes('druid spell')) return {list:SPELL_LISTS.druid, type:'divine', label:'Druid'};
+  if(clsKey==='Ranger'||note.includes('druid spell')) return {list:SPELL_LISTS.druid, type:'divine', label:'Druid'};
+  if(clsKey==='WoodElf') return {list:SPELL_LISTS.druid, type:'divine', label:'Druid'};
+  if(clsKey==='Bard') return {list:SPELL_LISTS.druid, type:'divine', label:'Druid'};
+  if(clsKey==='Illusionist'||note.includes('illusionist')) return {list:SPELL_LISTS.illusionist, type:'arcane', label:'Illusionist'};
+  if(clsKey==='Gnome') return {list:SPELL_LISTS.illusionist, type:'arcane', label:'Illusionist'};
+  if(clsKey==='Runegraver') return {list:SPELL_LISTS['magic-user'], type:'arcane', label:'Magic-User (Runes)'};
+  if(clsKey==='Drow') return {list:SPELL_LISTS.cleric, type:'divine', label:'Cleric'};
+
+  // Default: MU list for all arcane (Elf, AquaticElf, HalfElf, PhaseElf, Triton, Magic-User, Mage…)
+  return {list:SPELL_LISTS['magic-user'], type:'arcane', label:'Magic-User'};
+}
+
+function pickSpells(spellsPerDay, spellListData, reversed) {
+  if(!spellsPerDay || !spellListData) return null;
+  const result = {};
+  spellsPerDay.forEach((count, i) => {
+    if(!count || count === 0) return;
+    const lvl = i+1;
+    const pool = spellListData[lvl] || spellListData[String(lvl)] || [];
+    if(!pool.length) return;
+    const shuffled = [...pool].sort(()=>Math.random()-.5);
+    let picked = shuffled.slice(0, Math.min(count, pool.length));
+    if(reversed) {
+      // Prefix "Reverse:" to indicate reversed cleric spells
+      picked = picked.map(s => 'Reverse: '+s);
+    }
+    result[lvl] = {count, spells: picked};
+  });
+  return Object.keys(result).length ? result : null;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+
+// ── RACE/CLASS VALIDATION ────────────────────────────────────────────────────
+
+// Demihuman "race=class" combos — selecting these as a class implies a specific race
+const DEMIHUMAN_CLASSES = new Set([
+  'AquaticElf','Dragonborn','Drow','Duergar','Elf','Gargantua','Gnome','Goblin',
+  'HalfElf','HalfOrc','Halfling','Merfolk','Mycelian','Mutoid','PhaseElf','Satyr',
+  'Svirfneblin','Tiefling','Triton','WoodElf',
+  'Werebat','Werebear','Wereboar','Werefox','Werejaguar','Wererat','Wereshark','Wereswine','Weretiger','Werewolf'
+]);
+
+// Classes that are only for demihuman races (not available to humans as-is)
+const HUMAN_EXCLUDED_CLASSES = new Set([
+  'AquaticElf','Dragonborn','Drow','Duergar','Elf','Gargantua','Gnome','Goblin',
+  'HalfElf','HalfOrc','Halfling','Merfolk','Mycelian','Mutoid','PhaseElf','Satyr',
+  'Svirfneblin','Tiefling','Triton','WoodElf',
+  'Werebat','Werebear','Wereboar','Werefox','Werejaguar','Wererat','Wereshark','Wereswine','Weretiger','Werewolf'
+]);
+
+// Races that use 'newClasses' structure (base class = race name, plus extras)
+const NEW_CLASSES_RACES = new Set(['Dwarf','Elf','Halfling','AquaticElf','Merfolk','Triton','Satyr']);
+
+function getRaceClassData(raceName) {
+  const rd = GD.availableClassesAndMaxLevels?.newClassesForRaces?.[raceName];
+  if(!rd) return null;
+  // Merge classes and newClasses into one object
+  const merged = {};
+  if(rd.classes) Object.assign(merged, rd.classes);
+  if(rd.newClasses) Object.assign(merged, rd.newClasses);
+  if(rd.previousClasses) Object.assign(merged, rd.previousClasses);
+  return merged;
+}
+
+// Returns {allowed: bool, maxLevel: number|null, reason: string}
+function checkRaceClassCompatibility(raceName, clsKey) {
+  if(!raceName || !clsKey) return {allowed:true, maxLevel:null, reason:''};
+
+  const classData = GD.classes[clsKey];
+  if(!classData) return {allowed:true, maxLevel:null, reason:''};
+
+  // ── HUMAN ────────────────────────────────────────────────────────────────
+  if(raceName === 'Human') {
+    if(HUMAN_EXCLUDED_CLASSES.has(clsKey)) {
+      return {allowed:false, maxLevel:null, reason:`Humans cannot be ${clsKey} — this is a demihuman class.`};
+    }
+    // Humans get class max level
+    return {allowed:true, maxLevel: classData.maxLevel || 14, reason:''};
+  }
+
+  // ── DEMIHUMAN CLASS AS RACE (e.g. class=Goblin, race=Goblin) ─────────────
+  // If the class name matches the race, it's always valid (that's the native combo)
+  if(clsKey === raceName) {
+    return {allowed:true, maxLevel: classData.maxLevel || 14, reason:''};
+  }
+
+  // ── PURE DEMIHUMAN RACES (Dwarf, Elf, Halfling — newClasses structure) ───
+  // These races have their own base class (same name) + a few extra classes
+  if(NEW_CLASSES_RACES.has(raceName)) {
+    const raceClassMap = getRaceClassData(raceName);
+    if(!raceClassMap) return {allowed:false, maxLevel:null, reason:`No class data for ${raceName}.`};
+
+    // Their base class is always their own race class
+    const baseClass = raceName; // e.g. 'Dwarf' race plays 'Dwarf' class
+    if(clsKey === baseClass) return {allowed:true, maxLevel:classData.maxLevel||14, reason:''};
+
+    // Check newClasses — key might be slightly different (e.g. 'BeastMaster' vs 'Beast Master')
+    const normalised = clsKey.replace(/[-\s]/g,'').toLowerCase();
+    let found = null;
+    for(const [k,v] of Object.entries(raceClassMap)) {
+      if(k.replace(/[-\s]/g,'').toLowerCase() === normalised) { found = v; break; }
+    }
+    if(found !== null) {
+      return {allowed:true, maxLevel: found === 'unlimited' ? (classData.maxLevel||14) : found, reason:''};
+    }
+    // Not in newClasses — not allowed
+    const allowed = Object.keys(raceClassMap).join(', ');
+    return {allowed:false, maxLevel:null, reason:`${raceName} can only be: ${baseClass}, ${allowed}.`};
+  }
+
+  // ── RACES WITH EXPLICIT CLASS LIST (Goblin, HalfOrc, Tiefling, etc.) ─────
+  const raceClassMap = getRaceClassData(raceName);
+  if(!raceClassMap) {
+    // No restriction data — allow (catch-all)
+    return {allowed:true, maxLevel: classData.maxLevel||14, reason:''};
+  }
+
+  // allNonDemihumanClasses = unlimited (Human handled above, but just in case)
+  if(raceClassMap.allNonDemihumanClasses) {
+    if(HUMAN_EXCLUDED_CLASSES.has(clsKey)) {
+      return {allowed:false, maxLevel:null, reason:`${raceName} cannot be ${clsKey}.`};
+    }
+    return {allowed:true, maxLevel: classData.maxLevel||14, reason:''};
+  }
+
+  // Normalised lookup
+  const normalised = clsKey.replace(/[-\s]/g,'').toLowerCase();
+  let found = null;
+  for(const [k,v] of Object.entries(raceClassMap)) {
+    if(k.replace(/[-\s]/g,'').toLowerCase() === normalised) { found = v; break; }
+  }
+
+  if(found !== null) {
+    const ml = found === 'unlimited' ? (classData.maxLevel||14) : Math.min(found, classData.maxLevel||14);
+    return {allowed:true, maxLevel: ml, reason:''};
+  }
+
+  // Not in the list — not allowed
+  const allowedList = Object.keys(raceClassMap).join(', ');
+  return {allowed:false, maxLevel:null, reason:`${raceName}s cannot be ${clsKey}. Allowed classes: ${allowedList}.`};
+}
+
+window.onload = function() {
+  const clsSel = document.getElementById('cls-sel');
+  const classes = Object.keys(GD.classes||{}).sort();
+  classes.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;clsSel.appendChild(o);});
+
+  const raceSel = document.getElementById('race-sel');
+  RACES.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;raceSel.appendChild(o);});
+
+  const abDiv = document.getElementById('mc-abilities');
+  MC_ABILITIES.forEach(a=>{const l=document.createElement('label');l.className='chk-item';l.innerHTML=`<input type="checkbox" value="${a}"> ${a}`;abDiv.appendChild(l);});
+};
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tab-npc').style.display=name==='npc'?'grid':'none';
+  document.getElementById('tab-mc').style.display=name==='mc'?'grid':'none';
+  document.getElementById('tab-spells').style.display=name==='spells'?'block':'none';
+  document.getElementById('tab-equip').style.display=name==='equip'?'block':'none';
+  if(name==='spells'&&!document.getElementById('spells-content').innerHTML) renderSpellLists();
+  if(name==='equip'&&!document.getElementById('equip-content').innerHTML) renderEquipment();
+}
+
+function changeLevel(d){
+  currentLevel=Math.max(1,Math.min(maxLevel,currentLevel+d));
+  document.getElementById('lvl-display').textContent=currentLevel;
+}
+
+function onClassChange(){
+  const cls=document.getElementById('cls-sel').value;
+  const race=document.getElementById('race-sel').value;
+  updateValidation(cls, race);
+}
+
+function onRaceChange(){
+  const cls=document.getElementById('cls-sel').value;
+  const race=document.getElementById('race-sel').value;
+  updateValidation(cls, race);
+}
+
+function updateValidation(cls, race) {
+  const btn=document.getElementById('gen-btn');
+  const hint=document.getElementById('cls-hint');
+
+  if(!cls){btn.disabled=true;hint.innerHTML='';return;}
+
+  const cd=GD.classes[cls];
+  if(!cd){btn.disabled=true;return;}
+
+  const compat = checkRaceClassCompatibility(race, cls);
+
+  if(!compat.allowed){
+    btn.disabled=true;
+    hint.innerHTML=`<span style="color:#e05555;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">⚠ INVALID COMBINATION</span><br><span style="color:#e08888;font-size:12px">${compat.reason}</span>`;
+    return;
+  }
+
+  // Valid — set effective max level
+  const effectiveMax = compat.maxLevel || cd.maxLevel || 14;
+  maxLevel = effectiveMax;
+  if(currentLevel > maxLevel){currentLevel=maxLevel;document.getElementById('lvl-display').textContent=currentLevel;}
+
+  const raceNote = (race && race !== 'Human' && compat.maxLevel && compat.maxLevel < (cd.maxLevel||14))
+    ? `<br><span style="color:#e8b84b;font-size:11px">⚑ ${race} max level: ${compat.maxLevel}</span>` : '';
+
+  hint.innerHTML=
+    `<span>HD</span> ${cd.hd} &nbsp; <span>MAX</span> ${effectiveMax}${raceNote}<br>
+     <span>TYPE</span> ${cd.type||'—'}<br>
+     ${cd.alignment?`<span>ALIGN</span> ${cd.alignment}<br>`:''}
+     <span>MARTIAL</span> ${cd.martialCategory||'—'}`;
+
+  btn.disabled=false;
+}
+
+function updateFootHint(){const ac=parseInt(document.getElementById('mc-ac').value)||9;document.getElementById('foot-hint').textContent='→ '+(ac>=7?'Light Foot':ac>=3?'Medium Foot':'Heavy Foot');}
+function updateMoveHint(){const mr=parseInt(document.getElementById('mc-move').value)||60;document.getElementById('move-hint').textContent='→ Movement '+Math.floor(mr/10);}
+
+// ── DICE ─────────────────────────────────────────────────────────────────────
+function roll(n){return Math.floor(Math.random()*n)+1}
+function rollStat(){const r=[roll(6),roll(6),roll(6),roll(6)].sort((a,b)=>a-b);return r[1]+r[2]+r[3]}
+function getMod(s){return ABILITY_MODS[Math.min(18,Math.max(3,s))]??0}
+function fmtMod(n){return n>=0?'+'+n:''+n}
+function getHDType(hd){const m=(hd||'d8').match(/d(\d+)/);return m?parseInt(m[1]):8}
+function pickRand(arr,n){const a=[...arr].sort(()=>Math.random()-.5);return a.slice(0,Math.min(n,a.length))}
+
+// ── NPC GENERATION ────────────────────────────────────────────────────────────
+function generateNPC(){
+  const clsKey=document.getElementById('cls-sel').value;
+  const raceName=document.getElementById('race-sel').value;
+  if(!clsKey)return;
+  const cd=GD.classes[clsKey];
+  const level=currentLevel;
+  const raceMods=RACIAL_MODS[raceName]||{};
+  const raceData=GD.availableClassesAndMaxLevels?.newClassesForRaces?.[raceName]||null;
+
+  // Stats
+  const stats={};
+  ['STR','INT','WIS','DEX','CON','CHA'].forEach(k=>{stats[k]=Math.min(18,Math.max(3,rollStat()+(raceMods[k]||0)));});
+  const mods={};Object.keys(stats).forEach(k=>mods[k]=getMod(stats[k]));
+
+  // HP
+  const hdType=getHDType(cd.hd);
+  const hdCount=cd.hdCount?cd.hdCount[Math.min(level-1,cd.hdCount.length-1)]:level;
+  const hdBonus=cd.hdBonus?cd.hdBonus[Math.min(level-1,cd.hdBonus.length-1)]:0;
+  let hp=0;for(let i=0;i<hdCount;i++)hp+=Math.max(1,roll(hdType)+mods.CON);hp=Math.max(1,hp+hdBonus);
+
+  // Armor / weapons
+  const {armor,shield}=pickArmor(cd,level);
+  const ac=computeAC(cd,clsKey,armor,shield,mods.DEX,level);
+  const weapons=pickWeapons(cd,clsKey,level);
+
+  // THAC0 / saves
+  const thac0=(cd.thac0||[])[Math.min(level-1,(cd.thac0||[]).length-1)]??19;
+  const saves=((cd.saves||[])[Math.min(level-1,(cd.saves||[]).length-1)])||[12,13,14,15,16];
+
+  // Spells
+  let spellData=null;
+  const spdArr=cd.spellsPerDay||cd.runeSpellsPerDay;
+  const spdRow=spdArr?spdArr[Math.min(level-1,spdArr.length-1)]:null;
+  if(spdRow&&spdRow.some(x=>x>0)){
+    const spellListInfo=getSpellListForClass(clsKey,cd);
+    spellData={
+      perDay:spdRow,
+      known:pickSpells(spdRow,spellListInfo.list,spellListInfo.reversed),
+      label:spellListInfo.label
+    };
+  }
+
+  // Artificer gadgets
+  let gadgetData=null;
+  if(cd.gadgetProgression){
+    const gp=cd.gadgetProgression[Math.min(level-1,cd.gadgetProgression.length-1)];
+    gadgetData={
+      powers: pickRand(GADGET_POWERS, gp.gadgetPowers),
+      points: gp.gadgetPoints,
+      count: gp.gadgetPowers
+    };
+  }
+
+  const aligns=cd.alignments||['Lawful','Neutral','Chaotic'];
+  const alignment=aligns[Math.floor(Math.random()*aligns.length)];
+  const specials=(cd.special||[]).filter(s=>{const m=s.match(/(\d+)(st|nd|rd|th) level/);return !m||parseInt(m[1])<=level;});
+  const langs=buildLanguages(cd,raceData,stats.INT);
+  const extras=buildExtras(cd,clsKey,level);
+
+  renderNPC({clsKey,raceName,level,stats,mods,hp,ac,thac0,saves,spellData,gadgetData,alignment,specials,langs,weapons,armor,shield,extras,cd});
+}
+
+function pickArmor(cd,level){
+  const armorList=GD.customArmor?.armor||[];
+  const shieldList=[...(GD.customArmor?.shields||[]),...EXTRA_SHIELDS];
+  const restr=(Array.isArray(cd.armor)?cd.armor.join(' '):(cd.armor||'')).toLowerCase();
+  let eligible=[],eligibleShields=[];
+  if(restr.includes('shields only')){eligibleShields=shieldList;}
+  else if(!restr||restr==='none'){/* nothing */}
+  else if(restr.includes('any')||restr.includes('all')){eligible=armorList;if(!restr.includes('no shield'))eligibleShields=shieldList;}
+  else if(restr.includes('plate')){eligible=armorList;eligibleShields=shieldList;}
+  else if(restr.includes('chain')||restr.includes('mail')){eligible=armorList.filter(a=>a.category!=='Plate mail');eligibleShields=shieldList;}
+  else if(restr.includes('leather')){eligible=armorList.filter(a=>a.category==='Leather');if(restr.includes('shield'))eligibleShields=shieldList;}
+  if(restr.includes('no shield'))eligibleShields=[];
+  const wantsBest=cd.special&&cd.special.some(s=>s.toLowerCase().includes('heaviest'));
+  let armor=null;
+  if(eligible.length){
+    const sorted=[...eligible].sort((a,b)=>a.ac-b.ac);
+    if(wantsBest)armor=sorted[0];
+    else{const idx=Math.min(sorted.length-1,Math.floor(Math.random()*Math.ceil(sorted.length*(level/10+0.5))));armor=sorted[idx];}
+  }
+  let shield=null;
+  if(eligibleShields.length&&Math.random()>0.3)shield=eligibleShields[Math.floor(Math.random()*eligibleShields.length)];
+  return{armor,shield};
+}
+
+function computeAC(cd,clsKey,armor,shield,dexMod,level){
+  if(cd.naturalACByLevel){let ac=cd.naturalACByLevel[Math.min(level-1,cd.naturalACByLevel.length-1)];if(shield)ac-=shield.acBonus;return ac;}
+  if(clsKey==='Kineticist'){return[9,8,7,6,5,4,3,2,1,0,-1,-2,-3,-3][Math.min(level-1,13)];}
+  if(clsKey==='Monk')return cd.progression?.[Math.min(level-1,cd.progression.length-1)]?.naturalAC??9;
+  let ac=armor?armor.ac:9;
+  let dex=dexMod;
+  if(armor?.note?.includes('no DEX')||armor?.name==='Full Plate')dex=0;
+  if(armor?.name==='Half Plate')dex=Math.min(1,dex);
+  ac-=dex;if(shield)ac-=shield.acBonus;if(cd.naturalACBonus)ac-=cd.naturalACBonus;if(clsKey==='Dragonborn')ac-=1;
+  return ac;
+}
+
+// ── CATEGORY-BASED WEAPON PROFICIENCY ────────────────────────────────────────
+// Returns list of allowed weapon CATEGORIES (not individual weapons)
+function getAllowedCategories(cd, clsKey) {
+  const weaponList = GD.customWeapons?.weapons || [];
+  const catSummary = GD.customWeapons?.categorySummary || {};
+  const wl = (Array.isArray(cd.weapons) ? cd.weapons.join(' ') : (cd.weapons||'')).toLowerCase();
+
+  // Special cases
+  if(clsKey==='Knight' || (cd.special&&cd.special.some(s=>s.toLowerCase().includes('melee only')))) {
+    // Melee categories only — exclude missile
+    const meleeCats = new Set();
+    weaponList.forEach(w => { if(w.qualities&&w.qualities.includes('Melee')&&!w.qualities.includes('Missile')) meleeCats.add(w.category); });
+    return [...meleeCats].filter(Boolean).sort();
+  }
+  if(clsKey==='Monk' || wl.includes('monk weapon')) {
+    const mc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Monk')).forEach(w=>mc.add(w.category)); return [...mc].filter(Boolean).sort();
+  }
+  if(clsKey==='Ninja' || wl.includes('ninja weapon')) {
+    const nc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Ninja')).forEach(w=>nc.add(w.category)); return [...nc].filter(Boolean).sort();
+  }
+  if(wl.includes('blunt')) {
+    const bc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Blunt')).forEach(w=>bc.add(w.category)); return [...bc].filter(Boolean).sort();
+  }
+  if((wl.includes('any')&&!wl.includes('no longbow')&&!wl.includes('small')&&!wl.includes('size'))
+     || clsKey==='Fighter'||clsKey==='Barbarian'||clsKey==='Assassin'||clsKey==='Ranger'
+     || clsKey==='Paladin'||clsKey==='ChaosKnight'||clsKey==='Samurai'||clsKey==='Runegraver') {
+    return Object.keys(catSummary).sort();
+  }
+  // Size restricted (no longbow, no two-handed sword)
+  if(wl.includes('no longbow')||wl.includes('small')) {
+    const all = Object.keys(catSummary).filter(c=>c!=='Long bow'&&c!=='Two-handed sword'); return all.sort();
+  }
+  // Specific category lists
+  const allowed = new Set();
+  const catMap = {
+    'dagger': 'Dagger', 'sword': 'Sword', 'short sword': 'Short sword',
+    'two-handed sword': 'Two-handed sword', 'staff': 'Staff', 'spear': 'Spear',
+    'club': 'Club', 'sling': 'Sling', 'pole arm': 'Pole arm', 'lance': 'Lance',
+    'mace': 'Mace', 'hand axe': 'Hand axe', 'battle axe': 'Battle axe',
+    'long bow': 'Long bow', 'short bow': 'Short bow', 'crossbow': 'Crossbow',
+    'javelin': 'Javelin', 'war hammer': 'War hammer',
+  };
+  Object.entries(catMap).forEach(([key,cat]) => { if(wl.includes(key)) allowed.add(cat); });
+  if(wl.includes('missile')) ['Long bow','Short bow','Crossbow','Sling','Javelin'].forEach(c=>allowed.add(c));
+  if(wl.includes('one-handed melee')) {
+    weaponList.filter(w=>w.qualities&&w.qualities.includes('Melee')&&!w.qualities.includes('Two-handed')).forEach(w=>allowed.add(w.category));
+  }
+  return allowed.size ? [...allowed].sort() : Object.keys(catSummary).slice(0,4).sort();
+}
+
+// Get one representative weapon from a category
+function getRepWeapon(category) {
+  const weapons = GD.customWeapons?.weapons || [];
+  const inCat = weapons.filter(w => w.category === category);
+  return inCat[Math.floor(Math.random()*inCat.length)] || null;
+}
+
+function pickWeapons(cd, clsKey, level) {
+  const martCat = cd.martialCategory||'semiMartial';
+  const initSlots = {martial:4,semiMartial:3,nonMartial:1}[martCat]||2;
+  const thac0arr = cd.thac0||[];
+  let extra=0, prev=thac0arr[0]??19;
+  for(let i=1;i<Math.min(level,thac0arr.length);i++){if(thac0arr[i]<prev){extra++;prev=thac0arr[i];}}
+  let slots = initSlots + extra;
+
+  const allowedCats = getAllowedCategories(cd, clsKey);
+  if(!allowedCats.length) return [];
+
+  const chosen = []; // {category, weapon, specialized}
+  const canSpec = martCat === 'martial';
+
+  // Specialization uses 2 slots, picks a category
+  if(canSpec && slots >= 2 && allowedCats.length > 0) {
+    const cat = allowedCats[Math.floor(Math.random()*allowedCats.length)];
+    const rep = getRepWeapon(cat);
+    chosen.push({category:cat, weapon:rep, specialized:true});
+    slots -= 2;
+  }
+
+  // Fill remaining slots with categories (no repeats)
+  const rem = allowedCats.filter(c => !chosen.find(x=>x.category===c));
+  for(let i=0; i<slots && rem.length>0; i++) {
+    const idx = Math.floor(Math.random()*rem.length);
+    const cat = rem.splice(idx,1)[0];
+    const rep = getRepWeapon(cat);
+    chosen.push({category:cat, weapon:rep, specialized:false});
+  }
+  return chosen;
+}
+
+function buildLanguages(cd,raceData,INT){
+  const langs=new Set(['Common']);
+  const add=arr=>(arr||[]).forEach(l=>{if(l==='Alignment'||l==='Nationality')langs.add('Cultural language of homeland');else langs.add(l);});
+  add(cd.languages);if(raceData)add(raceData.languages);
+  const extra={9:0,10:1,11:1,12:1,13:2,14:2,15:3,16:3,17:4,18:5}[Math.min(18,Math.max(3,INT))]||0;
+  const pool=LANGUAGES.filter(l=>!langs.has(l));
+  for(let i=0;i<extra&&pool.length;i++){const idx=Math.floor(Math.random()*pool.length);langs.add(pool.splice(idx,1)[0]);}
+  return[...langs];
+}
+
+function buildExtras(cd,clsKey,level){
+  const ex={};
+  if(clsKey==='Dragonborn'){const d10=roll(10);const t=[null,{t:'Black',d:'Acid',s:"Line 5'×30'"},{t:'Black',d:'Acid',s:"Line 5'×30'"},{t:'Blue',d:'Lightning',s:"Line 5'×30'"},{t:'Blue',d:'Lightning',s:"Line 5'×30'"},{t:'Green',d:'Poison',s:"Cloud 10'×15'"},{t:'Green',d:'Poison',s:"Cloud 10'×15'"},{t:'Red',d:'Fire',s:"Cone 15'×20'"},{t:'Red',d:'Fire',s:"Cone 15'×20'"},{t:'White',d:'Cold',s:"Cone 15'×20'"},{t:'White',d:'Cold',s:"Cone 15'×20'"}];ex.bloodline=t[d10];}
+  if(cd.mutationsTable){const tbl=[...cd.mutationsTable].sort(()=>Math.random()-.5);const picked=[];for(const m of tbl){if(picked.length>=2)break;if(!picked.find(p=>p.d8===m.d8))picked.push(m);}ex.mutations=picked;}
+  if(cd.fiendishAppearanceTable){const rt=arr=>{const i=[],r=[];while(r.length<2){const x=Math.floor(Math.random()*arr.length);if(!i.includes(x)){i.push(x);r.push(arr[x]);}}return r;};ex.fiendish={appearance:rt(cd.fiendishAppearanceTable),gifts:rt(cd.fiendishGiftsTable||[])};}
+  if(cd.mentalPowers){const p=Object.entries(cd.mentalPowers).sort(()=>Math.random()-.5);ex.mentalPowers=p.slice(0,Math.min(3+Math.floor((level-1)/2),p.length)).map(([k,v])=>({name:k,...v}));}
+  if(cd.progression&&clsKey==='Monk')ex.monkProg=cd.progression[Math.min(level-1,cd.progression.length-1)];
+  if(clsKey==='Mycelian'){ex.unarmed=cd.unarmedDamageByLevel?.[Math.min(level-1,5)]||'1d4';ex.height=(3+level)+"'";ex.natAC=cd.naturalACDisplayByLevel?.[Math.min(level-1,5)]||'6[13]';}
+  if(clsKey==='ChaosKnight'||clsKey==='Chaos Knight'){if(level>=4)ex.infernalSteed="AC 5[14], 5+5 HD, Move 180'(60')";if(level>=3)ex.commandUndead=true;}
+  if(cd.acrobatSkills)ex.acrobatSkills=cd.acrobatSkills[Math.min(level-1,cd.acrobatSkills.length-1)];
+  if(cd.ninjaSkills)ex.ninjaSkills=cd.ninjaSkills[Math.min(level-1,cd.ninjaSkills.length-1)];
+  if(cd.skillChanceByLevel){const defs=cd.skills||cd.skillKeys||{};ex.skills=Object.keys(cd.skillChanceByLevel).map(k=>({key:k,name:(defs[k]?.name||defs[k]||k),pct:cd.skillChanceByLevel[k][Math.min(level-1,cd.skillChanceByLevel[k].length-1)]}));}
+  if(cd.type==='Lycanthrope'){const prog=cd.progression?.[Math.min(level-1,cd.progression.length-1)];ex.lycan={forms:cd.forms,prog,keys:cd.specialAbilityKeys};}
+  return ex;
+}
+
+// ── RENDER NPC ────────────────────────────────────────────────────────────────
+function renderNPC(n){
+  const{clsKey,raceName,level,stats,mods,hp,ac,thac0,saves,spellData,gadgetData,alignment,specials,langs,weapons,armor,shield,extras,cd}=n;
+  const acStr=`${ac} [${19-ac}]`, thac0str=`${thac0} [+${19-thac0}]`;
+  let h=`<div class="card"><div class="card-hdr"><h2>${raceName&&raceName!=='Human'?raceName+' ':''}${clsKey}</h2><p>Level ${level} · ${alignment}${cd.martialCategory?' · '+cap(cd.martialCategory):''}</p></div><div class="card-body">`;
+
+  // Ability scores
+  h+=`<div class="full"><div class="sec-ttl">Ability Scores</div><div class="ab-grid">`;
+  ['STR','INT','WIS','DEX','CON','CHA'].forEach(k=>{h+=`<div class="ab-box"><span class="ab-key">${k}</span><span class="ab-score">${stats[k]}</span><span class="ab-mod">${fmtMod(mods[k])}</span></div>`;});
+  h+=`</div></div>`;
+
+  // Combat
+  h+=`<div><div class="sec-ttl">Combat</div><div class="cbt-row"><div class="cbt-box"><span class="cbt-lbl">HP</span><span class="cbt-val">${hp}</span></div><div class="cbt-box"><span class="cbt-lbl">AC</span><span class="cbt-val" style="font-size:16px">${acStr}</span></div><div class="cbt-box"><span class="cbt-lbl">THAC0</span><span class="cbt-val" style="font-size:14px">${thac0str}</span></div></div></div>`;
+
+  // Saves
+  h+=`<div><div class="sec-ttl">Saving Throws</div><table class="saves-tbl"><tbody>`;
+  SAVE_LABELS.forEach((l,i)=>{h+=`<tr><td>${l}</td><td>${saves[i]??'—'}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+
+  // Spells
+  if(spellData){
+    h+=`<div class="full"><div class="sec-ttl">Spells — <span style="font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">${spellData.label} list</span></div>`;
+    h+=`<div class="spells">`;
+    spellData.perDay.forEach((c,i)=>{if(c>0)h+=`<div class="sp-box"><span class="sp-lvl">L${i+1}</span><span class="sp-cnt">${c}</span></div>`;});
+    h+=`</div>`;
+    if(spellData.known){
+      Object.entries(spellData.known).forEach(([lvl,info])=>{
+        h+=`<div class="spell-row"><strong>Level ${lvl}:</strong> <span class="spell-names">${info.spells.join(', ')}</span></div>`;
+      });
+    }
+    h+=`</div>`;
+  }
+
+  // Gadget powers
+  if(gadgetData){
+    h+=`<div class="full"><div class="sec-ttl">Gadget Powers (${gadgetData.count} known · ${gadgetData.points} pts/day)</div>`;
+    gadgetData.powers.forEach(p=>{h+=`<div class="eq-row"><span>${p}</span></div>`;});
+    h+=`</div>`;
+  }
+
+  // Armor
+  h+=`<div><div class="sec-ttl">Armour &amp; Shield</div>`;
+  if(armor)h+=`<div class="eq-row"><span>${armor.name}</span><span class="eq-det">AC ${armor.ac}</span></div>`;
+  else h+=`<div class="eq-row"><span style="color:var(--ink-light);font-style:italic">No armour</span></div>`;
+  if(shield)h+=`<div class="eq-row"><span>${shield.name}</span><span class="eq-det">+${shield.acBonus} AC</span></div>`;
+  if(armor?.note)h+=`<div class="note-txt">${armor.note}</div>`;
+  if(shield?.note)h+=`<div class="note-txt">${shield.note}</div>`;
+  h+=`</div>`;
+
+  // Weapons
+  h+=`<div><div class="sec-ttl">Weapons &amp; Proficiencies</div>`;
+  if(!weapons.length)h+=`<div class="eq-row"><span style="color:var(--ink-light);font-style:italic">Unarmed / class-specific</span></div>`;
+  else weapons.forEach(w=>{
+    const dmg = w.weapon ? w.weapon.damage : '—';
+    const ex = w.weapon ? ` <span style="color:var(--ink-light);font-size:11px">(e.g. ${w.weapon.name})</span>` : '';
+    h+=`<div class="eq-row"><span><strong>${w.category}</strong>${ex}${w.specialized?'<span class="spec-tag">SPEC</span>':''}</span><span class="eq-det">${dmg}${w.specialized?' +1/+1':''}</span></div>`;
+  });
+  h+=`</div>`;
+
+  // Monk
+  if(extras.monkProg){const mp=extras.monkProg;h+=`<div><div class="sec-ttl">Monk Combat</div><div class="eq-row"><span>Attacks/Round</span><span>${mp.attacks}</span></div><div class="eq-row"><span>Unarmed Damage</span><span>${mp.damage}</span></div><div class="eq-row"><span>Natural AC</span><span>${mp.naturalAC}</span></div>${mp.maneuvers?`<div class="eq-row"><span>Maneuvers</span><span>${mp.maneuvers.join(', ')}</span></div>`:''}</div>`;}
+  if(extras.unarmed){h+=`<div><div class="sec-ttl">Mycelian Traits</div><div class="eq-row"><span>Fist Damage</span><span>${extras.unarmed}</span></div><div class="eq-row"><span>Natural AC</span><span>${extras.natAC}</span></div><div class="eq-row"><span>Height</span><span>${extras.height}</span></div></div>`;}
+  if(extras.bloodline){h+=`<div><div class="sec-ttl">Draconic Bloodline</div><div class="extra-block"><p><strong>${extras.bloodline.t}</strong> — ${extras.bloodline.d}</p><p>Breath: ${extras.bloodline.s}</p></div></div>`;}
+  if(extras.mutations?.length){h+=`<div><div class="sec-ttl">Mutations</div>`;extras.mutations.forEach(m=>{h+=`<div class="extra-block" style="margin-bottom:4px"><p><strong>${m.mutation}:</strong> ${m.effect}</p></div>`;});h+=`</div>`;}
+  if(extras.fiendish){h+=`<div><div class="sec-ttl">Fiendish Heritage</div><div class="extra-block"><p><strong>Appearance:</strong> ${extras.fiendish.appearance.join('; ')}</p><p><strong>Gifts:</strong> ${extras.fiendish.gifts.join('; ')}</p></div></div>`;}
+  if(extras.mentalPowers?.length){h+=`<div class="full"><div class="sec-ttl">Mental Powers Known</div>`;extras.mentalPowers.forEach(p=>{h+=`<div class="eq-row" style="flex-direction:column;align-items:flex-start"><span style="font-weight:500">${p.name}</span><span style="font-size:11px;color:var(--ink-light)">${p.description}</span></div>`;});h+=`</div>`;}
+  if(extras.skills?.length){h+=`<div><div class="sec-ttl">Skills</div>`;extras.skills.forEach(s=>{h+=`<div class="eq-row"><span>${s.name||s.key}</span><span>${s.pct}%</span></div>`;});h+=`</div>`;}
+  if(extras.ninjaSkills){h+=`<div><div class="sec-ttl">Ninja Skills</div>`;Object.entries(extras.ninjaSkills).filter(([k])=>k!=='level').forEach(([k,v])=>{h+=`<div class="eq-row"><span>${{HP:'Hide/Pursue',HS:'Hide in Shadows',MS:'Move Silently',TW:'Tightrope Walk'}[k]||k}</span><span>${v}%</span></div>`;});h+=`</div>`;}
+  if(extras.acrobatSkills){h+=`<div><div class="sec-ttl">Acrobat Skills</div>`;Object.entries(extras.acrobatSkills).filter(([k])=>k!=='level').forEach(([k,v])=>{h+=`<div class="eq-row"><span>${{CS:'Climb Sheer',FA:'Fall Safely',HS:'Hide in Shadows',MS:'Move Silently',TW:'Tightrope Walk'}[k]||k}</span><span>${v}%</span></div>`;});h+=`</div>`;}
+  if(extras.lycan){const ly=extras.lycan;h+=`<div class="full"><div class="sec-ttl">Lycanthrope Forms</div><div class="extra-block"><p><strong>Forms:</strong> ${(ly.forms||[]).join(' / ')}</p>`;if(ly.prog){h+=`<p><strong>AC:</strong> ${ly.prog.AC} · <strong>Attacks:</strong> ${ly.prog.attacks}</p>`;if(ly.prog.special?.length)h+=`<p><strong>Abilities:</strong> ${ly.prog.special.map(k=>ly.keys?.[k]||k).join('; ')}</p>`;}h+=`</div></div>`;}
+  if(extras.infernalSteed){h+=`<div><div class="sec-ttl">Infernal Steed</div><div class="eq-row"><span>${extras.infernalSteed}</span></div></div>`;}
+
+  // Specials
+  if(specials.length){h+=`<div class="full"><div class="sec-ttl">Special Abilities</div><ul class="spec-list">`;specials.slice(0,10).forEach(s=>{h+=`<li class="spec-item">${s}</li>`;});h+=`</ul></div>`;}
+
+  // Languages
+  h+=`<div class="full"><div class="sec-ttl">Languages</div><div class="lang-wrap">`;
+  langs.forEach(l=>{h+=`<span class="lang-tag">${l}</span>`;});
+  h+=`</div></div></div></div>`;
+
+  document.getElementById('npc-out').innerHTML=h;
+  document.getElementById('prt-npc').style.display='block';
+}
+
+// ── MASS COMBAT ───────────────────────────────────────────────────────────────
+function buildMCUnit(){
+  const name=document.getElementById('mc-name').value||'Unnamed Unit';
+  const troops=parseInt(document.getElementById('mc-troops').value)||100;
+  const hd=parseFloat(document.getElementById('mc-hd').value)||1;
+  const ac=parseInt(document.getElementById('mc-ac').value)??7;
+  const moveRate=parseInt(document.getElementById('mc-move').value)||120;
+  const damage=document.getElementById('mc-dmg').value||'1d8';
+  const mountType=document.getElementById('mc-mount').value;
+  const cohesion=document.getElementById('mc-cohesion').value;
+  const abilities=[...document.querySelectorAll('#mc-abilities input:checked')].map(i=>i.value);
+
+  const footType=mountType!=='None'?null:(ac>=7?'Light Foot':ac>=3?'Medium Foot':'Heavy Foot');
+  const quality=hd<1?{l:'Poor',p:-1}:hd<2?{l:'Average',p:0}:hd<3?{l:'Superior',p:1}:{l:'Elite',p:2};
+  const mountPoA={None:0,'Light Small':0,'Light Medium':0,'Light Large':2,'Heavy Small':1,'Heavy Medium':1,'Heavy Large':3}[mountType]||0;
+  const footPoA=mountType!=='None'?mountPoA:({'Light Foot':0,'Medium Foot':1,'Heavy Foot':2}[footType]||0);
+  const staticPoA=quality.p+footPoA;
+  let category;
+  if(mountType!=='None')category=mountType.startsWith('Light')?'Skirmisher':'Impact';
+  else if(footType==='Light Foot')category='Skirmisher';
+  else if(footType==='Heavy Foot'||abilities.includes('Pikemen')||abilities.includes('Offensive Spearmen'))category='Impact';
+  else category='Non-Skirmisher';
+
+  const cpoa=[];
+  if(abilities.includes('Defensive Spearmen'))cpoa.push('Def. Spear vs. Skirmishers/Mob: +4','Def. Spear vs. Light Foot: +3','Def. Spear vs. Medium Foot: +2','Def. Spear vs. Heavy Foot: +1','Def. Spear vs. Light Large: +3','Def. Spear vs. Heavy Large: +2');
+  if(abilities.includes('Swordsmen'))cpoa.push('Swordsmen vs. Pikemen/Off. Spear: +2');
+  if(abilities.includes('Offensive Spearmen')||abilities.includes('Pikemen')){const tag=abilities.includes('Pikemen')?'Pikemen':'Off. Spear';cpoa.push(`${tag} vs. Skirmishers/Mob: +5`,`${tag} vs. Light Foot: +4`,`${tag} vs. Medium Foot: +3`,`${tag} vs. Heavy Foot: +2`,`${tag} vs. Large: +1`);}
+  if(abilities.includes('Longbows'))cpoa.push('Longbow vs. Skirmishers/Mob: +4','Longbow vs. Light Foot: +3','Longbow vs. Medium Foot: +2','Longbow vs. Heavy Foot: +1');
+  if(abilities.includes('Crossbows'))cpoa.push('Crossbow vs. Skirmishers/Mob: +4','Crossbow vs. Light Foot: +3','Crossbow vs. Medium Foot: +2','Crossbow vs. Heavy Foot: +1');
+  if(abilities.includes('Ranged Weapon'))cpoa.push('Ranged vs. Skirmishers/Mob: +2','Ranged vs. Light Foot: +1');
+  if(mountType==='Light Large')cpoa.push('Light Large vs. Skirmishers/Mob: +3','Light Large vs. Light Foot: +2');
+  if(mountType==='Heavy Large')cpoa.push('Heavy Large vs. Skirmishers/Mob: +5','Heavy Large vs. Light Foot: +4','Heavy Large vs. Medium Foot: +3','Heavy Large vs. Light Large: +1');
+  if(category==='Impact'){cpoa.push('Impact Charge (2+ spaces): +4 PoA');if(abilities.includes('Lancers'))cpoa.push('Impact Charge w/ Lances: +8 PoA');}
+
+  const poaStr=staticPoA>=0?'+'+staticPoA:''+staticPoA;
+  const displayFoot=mountType!=='None'?`Mounted (${mountType})`:footType;
+
+  let h=`<div class="mc-card"><div class="mc-hdr"><div class="mc-hf"><span class="mc-hl">Unit</span><span class="mc-hv">${name}</span></div><div class="mc-hf"><span class="mc-hl">Cohesion</span><span class="mc-hv">${cohesion}</span></div><div class="mc-hf"><span class="mc-hl">Total Troops</span><span class="mc-hv">${troops}</span></div><div class="mc-hf"><span class="mc-hl">HD · Total HD</span><span class="mc-hv">${hd} · ${hd*troops}</span></div></div>`;
+  h+=`<div class="mc-body"><div><div class="mc-row"><span>Damage</span><span class="mc-rv">${damage}</span></div><div class="mc-row"><span>Foot Type</span><span class="mc-rv">${displayFoot}</span></div><div class="mc-row"><span>Category</span><span class="mc-rv">${category}</span></div><div class="mc-row"><span>Quality</span><span class="mc-rv">${quality.l}</span></div><div class="mc-row"><span>Movement</span><span class="mc-rv">${Math.floor(moveRate/10)}</span></div></div>`;
+  h+=`<div class="poa-section"><div><div class="poa-big">${poaStr}</div><div class="poa-lbl">Static PoA</div><div class="poa-sub">Quality ${quality.p>=0?'+'+quality.p:quality.p} · Foot +${footPoA}</div></div><div><div class="sec-ttl" style="margin-bottom:6px">Circumstantial PoA</div><div class="cpoa-list">`;
+  if(!cpoa.length)h+=`<div style="color:var(--ink-light);font-style:italic">None</div>`;
+  else cpoa.forEach(p=>{h+=`<div class="cpoa-item">${p}</div>`;});
+  h+=`</div></div></div>`;
+  if(abilities.length){h+=`<div class="ab-tags"><strong style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--crimson);margin-right:6px">Abilities</strong>`;abilities.forEach(a=>{h+=`<span class="ab-tag">${a}</span>`;});h+=`</div>`;}
+  h+=`</div></div>`;
+
+  document.getElementById('mc-out').innerHTML=h;
+  document.getElementById('prt-mc').style.display='block';
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+
+// ── SPELL LISTS REFERENCE ────────────────────────────────────────────────────
+function renderSpellLists() {
+  const allLists = [
+    {
+      id:'cleric', title:'Cleric', subtitle:'Divine · Used by: Cleric, Paladin (L9+), Chaos Knight (L9+, reversed), Drow',
+      levels: SPELL_LISTS.cleric
+    },
+    {
+      id:'druid', title:'Druid', subtitle:'Divine · Used by: Druid, Ranger (L8+), Wood Elf, Bard',
+      levels: SPELL_LISTS.druid
+    },
+    {
+      id:'mu', title:'Magic-User', subtitle:'Arcane · Used by: Magic-User, Elf, Aquatic Elf, Half-Elf (L2+), Phase Elf (MU phase), Triton, Runegraver',
+      levels: SPELL_LISTS['magic-user']
+    },
+    {
+      id:'illusionist', title:'Illusionist', subtitle:'Arcane · Used by: Illusionist, Gnome',
+      levels: SPELL_LISTS.illusionist
+    },
+    {
+      id:'sorcerer', title:'Sorcerer', subtitle:'Arcane · Custom Middle Sea list',
+      levels: GD.classes.Sorcerer?.spells || {}
+    }
+  ];
+
+  // Gadget powers
+  const gadgetProg = GD.classes.Artificer?.gadgetProgression || [];
+
+  let h = `<div style="max-width:1040px">`;
+  h += `<h2 style="font-family:'Cinzel Decorative',serif;color:var(--gold-l);font-size:22px;margin-bottom:24px;letter-spacing:1px">Spell Lists &amp; Gadget Powers</h2>`;
+
+  // Spell lists
+  allLists.forEach(list => {
+    h += `<div style="margin-bottom:36px">
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l);background:rgba(212,184,120,0.1);border-left:4px solid var(--gold);padding:8px 14px;margin-bottom:4px;border-radius:2px">${list.title}</div>
+      <div style="font-size:13px;color:var(--parchment-deep);font-style:italic;margin-bottom:12px">${list.subtitle}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">`;
+    const maxLvl = Math.max(...Object.keys(list.levels).map(Number));
+    for(let lvl=1;lvl<=maxLvl;lvl++){
+      const spells = list.levels[lvl]||list.levels[String(lvl)]||[];
+      if(!spells.length) continue;
+      h += `<div style="background:rgba(245,230,200,0.05);border:1px solid var(--panel-border);border-radius:3px;padding:10px 12px">
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-l);text-transform:uppercase;margin-bottom:6px;padding:4px 10px;background:rgba(212,184,120,0.1);border-left:3px solid var(--gold);border-radius:2px">Level ${lvl} — ${spells.length} spells</div>
+        <div style="font-size:13px;color:var(--parchment);line-height:1.6">${spells.map(s=>`<div style="padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${s}</div>`).join('')}</div>
+      </div>`;
+    }
+    h += `</div></div>`;
+  });
+
+  // Artificer Gadget Powers
+  h += `<div style="margin-bottom:36px">
+    <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l);background:rgba(212,184,120,0.1);border-left:4px solid var(--gold);padding:8px 14px;margin-bottom:4px;border-radius:2px">Artificer — Gadget Powers</div>
+    <div style="font-size:13px;color:var(--parchment-deep);font-style:italic;margin-bottom:12px">Full list of available gadget powers · NPC knows N powers (per level) and has N gadget points/day</div>
+    <div style="margin-bottom:14px">
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-l);text-transform:uppercase;margin-bottom:6px;padding:4px 10px;background:rgba(212,184,120,0.1);border-left:3px solid var(--gold);border-radius:2px">Gadget Progression by Level</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+  gadgetProg.forEach(g=>{
+    h+=`<div style="background:rgba(245,230,200,0.05);border:1px solid var(--panel-border);border-radius:3px;padding:5px 10px;text-align:center;min-width:60px">
+      <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--gold);letter-spacing:1px">L${g.level}</div>
+      <div style="font-size:12px;color:var(--parchment)">${g.gadgetPowers} pwrs</div>
+      <div style="font-size:11px;color:var(--parchment-deep)">${g.gadgetPoints} pts</div>
+    </div>`;
+  });
+  h += `</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:6px">`;
+  GADGET_POWERS.forEach(p=>{
+    h+=`<div style="background:rgba(245,230,200,0.04);border:1px solid rgba(58,42,24,0.6);border-radius:2px;padding:5px 10px;font-size:13px;color:var(--parchment)">▶ ${p}</div>`;
+  });
+  h += `</div></div>`;
+
+  // Overcharge rules
+  const overcharge = GD.classes.Artificer?.overcharge;
+  if(overcharge) {
+    h += `<div style="margin-bottom:36px">
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--gold-l);border-bottom:2px solid var(--gold);padding-bottom:6px;margin-bottom:10px">Artificer — Overcharge</div>
+      <div style="background:rgba(245,230,200,0.05);border:1px solid var(--panel-border);border-radius:3px;padding:12px 16px;font-size:13px;color:var(--parchment);line-height:1.7">${overcharge}</div>
+    </div>`;
+  }
+
+  h += `</div>`;
+  document.getElementById('spells-content').innerHTML = h;
+}
+
+// ── EQUIPMENT REFERENCE ───────────────────────────────────────────────────────
+function renderEquipment() {
+  const weapons = GD.customWeapons?.weapons || [];
+  const catSummary = GD.customWeapons?.categorySummary || {};
+  const armor = GD.customArmor?.armor || [];
+  const shields = [...(GD.customArmor?.shields||[]), ...EXTRA_SHIELDS];
+
+  const tblStyle = `width:100%;border-collapse:collapse;font-size:13px;margin-bottom:28px`;
+  const thStyle = `font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-l);padding:6px 10px;border-bottom:2px solid var(--gold);text-align:left;background:rgba(212,184,120,0.08)`;
+  const tdStyle = `padding:5px 10px;border-bottom:1px solid var(--panel-border);color:var(--parchment);vertical-align:top`;
+  const tdAltStyle = `padding:5px 10px;border-bottom:1px solid var(--panel-border);color:var(--parchment);vertical-align:top;background:rgba(255,255,255,0.02)`;
+
+  let h = `<div style="max-width:1040px">`;
+  h += `<h2 style="font-family:'Cinzel Decorative',serif;color:var(--gold-l);font-size:22px;margin-bottom:24px;letter-spacing:1px">Weapons &amp; Armour</h2>`;
+
+  // Weapons by category
+  h += `<div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-l);background:rgba(212,184,120,0.1);border-left:4px solid var(--gold);padding:7px 14px;margin-bottom:16px;border-radius:2px">Weapons (${weapons.length} total)</div>`;
+
+  const byCategory = {};
+  weapons.forEach(w => {
+    const cat = w.category || 'NA';
+    if(!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push(w);
+  });
+
+  Object.entries(byCategory).sort(([a],[b])=>a.localeCompare(b)).forEach(([cat, weps]) => {
+    h += `<div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-l);text-transform:uppercase;margin:16px 0 6px;padding:4px 10px;background:rgba(212,184,120,0.08);border-left:3px solid var(--gold);border-radius:2px">${cat}</div>`;
+    h += `<table style="${tblStyle}"><thead><tr>
+      <th style="${thStyle}">Name</th>
+      <th style="${thStyle}">Cost</th>
+      <th style="${thStyle}">Damage</th>
+      <th style="${thStyle}">Qualities</th>
+      <th style="${thStyle}">Nations</th>
+      <th style="${thStyle}">Notes</th>
+    </tr></thead><tbody>`;
+    weps.forEach((w,i) => {
+      const td = i%2===0?tdStyle:tdAltStyle;
+      const quals = (w.qualities||[]).join(', ');
+      const nations = (w.nations||[]).slice(0,3).join(', ')+(w.nations?.length>3?' …':'');
+      h += `<tr>
+        <td style="${td};font-weight:500">${w.name}</td>
+        <td style="${td}">${w.cost}</td>
+        <td style="${td}">${w.damage}</td>
+        <td style="${td};color:var(--parchment-deep)">${quals}</td>
+        <td style="${td};font-size:11px;color:var(--parchment-deep)">${nations}</td>
+        <td style="${td};font-size:11px;font-style:italic;color:#b89060">${w.note||''}</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  });
+
+  // Quality descriptions
+  const qdesc = GD.customWeapons?.qualityDescriptions || {};
+  if(Object.keys(qdesc).length) {
+    h += `<div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-l);border-bottom:2px solid var(--gold);padding-bottom:6px;margin:28px 0 12px">Weapon Quality Glossary</div>`;
+    h += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:28px">`;
+    Object.entries(qdesc).forEach(([q,desc]) => {
+      h += `<div style="background:rgba(245,230,200,0.04);border:1px solid var(--panel-border);border-radius:3px;padding:8px 12px">
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:1.5px;color:var(--gold-l);text-transform:uppercase;margin-bottom:3px;padding:3px 8px;background:rgba(212,184,120,0.1);border-left:3px solid var(--gold);border-radius:2px">${q}</div>
+        <div style="font-size:12px;color:var(--parchment);line-height:1.5">${desc}</div>
+      </div>`;
+    });
+    h += `</div>`;
+  }
+
+  // Armour table
+  h += `<div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-l);background:rgba(212,184,120,0.1);border-left:4px solid var(--gold);padding:7px 14px;margin-bottom:16px;border-radius:2px">Armour</div>`;
+
+  const armorByCategory = {};
+  armor.forEach(a => {
+    const cat = a.category || 'Other';
+    if(!armorByCategory[cat]) armorByCategory[cat] = [];
+    armorByCategory[cat].push(a);
+  });
+
+  const catOrder = ['Leather','Chainmail','Plate mail','ANY'];
+  catOrder.forEach(cat => {
+    const items = armorByCategory[cat];
+    if(!items) return;
+    const acDesc = {Leather:'AC 6–8',Chainmail:'AC 5–6','Plate mail':'AC 2–4',ANY:'Special'}[cat]||'';
+    h += `<div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--gold-l);text-transform:uppercase;margin:12px 0 6px;padding:4px 10px;background:rgba(212,184,120,0.08);border-left:3px solid var(--gold);border-radius:2px">${cat} ${acDesc?'('+acDesc+')':''}</div>`;
+    h += `<table style="${tblStyle}"><thead><tr>
+      <th style="${thStyle}">Name</th>
+      <th style="${thStyle}">Cost</th>
+      <th style="${thStyle}">AC</th>
+      <th style="${thStyle}">Nations</th>
+      <th style="${thStyle}">Notes</th>
+    </tr></thead><tbody>`;
+    [...items].sort((a,b)=>a.ac-b.ac).forEach((a,i) => {
+      const td = i%2===0?tdStyle:tdAltStyle;
+      const nations = (a.nations||[]).slice(0,4).join(', ')+(a.nations?.length>4?' …':'');
+      h += `<tr>
+        <td style="${td};font-weight:500">${a.name}</td>
+        <td style="${td}">${a.cost}</td>
+        <td style="${td};font-family:'Cinzel',serif;font-size:15px">${a.ac}</td>
+        <td style="${td};font-size:11px;color:var(--parchment-deep)">${nations}</td>
+        <td style="${td};font-size:11px;font-style:italic;color:#b89060">${a.note||''}</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  });
+
+  // Shields
+  h += `<div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold-l);background:rgba(212,184,120,0.1);border-left:4px solid var(--gold);padding:7px 14px;margin-bottom:16px;border-radius:2px">Shields</div>`;
+  h += `<table style="${tblStyle}"><thead><tr>
+    <th style="${thStyle}">Name</th>
+    <th style="${thStyle}">Cost</th>
+    <th style="${thStyle}">AC Bonus</th>
+    <th style="${thStyle}">Nations</th>
+    <th style="${thStyle}">Notes</th>
+  </tr></thead><tbody>`;
+  [...shields].sort((a,b)=>a.acBonus-b.acBonus).forEach((s,i) => {
+    const td = i%2===0?tdStyle:tdAltStyle;
+    const nations = (s.nations||[]).slice(0,4).join(', ')+(s.nations?.length>4?' …':'');
+    h += `<tr>
+      <td style="${td};font-weight:500">${s.name}</td>
+      <td style="${td}">${s.cost||'—'}</td>
+      <td style="${td};font-family:'Cinzel',serif;font-size:15px">+${s.acBonus}</td>
+      <td style="${td};font-size:11px;color:var(--parchment-deep)">${nations}</td>
+      <td style="${td};font-size:11px;font-style:italic;color:#b89060">${s.note||''}</td>
+    </tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  document.getElementById('equip-content').innerHTML = h;
+}
+
+</script>
+</body>
+</html>
