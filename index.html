@@ -722,31 +722,34 @@ function getAllowedCategories(cd, clsKey) {
   const weaponList = GD.customWeapons?.weapons || [];
   const catSummary = GD.customWeapons?.categorySummary || {};
   const wl = (Array.isArray(cd.weapons) ? cd.weapons.join(' ') : (cd.weapons||'')).toLowerCase();
+  // "NA"/"NA (no category / exotic)" is a data bucket for exotic weapons, NOT an
+  // OSE proficiency category — it must never appear in a proficiency pool.
+  const isRealCat = c => !!c && !/^NA\b/.test(c);
 
   // Special cases
   if(clsKey==='Knight' || (cd.special&&cd.special.some(s=>s.toLowerCase().includes('melee only')))) {
     // Melee categories only — exclude missile
     const meleeCats = new Set();
     weaponList.forEach(w => { if(w.qualities&&w.qualities.includes('Melee')&&!w.qualities.includes('Missile')) meleeCats.add(w.category); });
-    return [...meleeCats].filter(Boolean).sort();
+    return [...meleeCats].filter(isRealCat).sort();
   }
   if(clsKey==='Monk' || wl.includes('monk weapon')) {
-    const mc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Monk')).forEach(w=>mc.add(w.category)); return [...mc].filter(Boolean).sort();
+    const mc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Monk')).forEach(w=>mc.add(w.category)); return [...mc].filter(isRealCat).sort();
   }
   if(clsKey==='Ninja' || wl.includes('ninja weapon')) {
-    const nc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Ninja')).forEach(w=>nc.add(w.category)); return [...nc].filter(Boolean).sort();
+    const nc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Ninja')).forEach(w=>nc.add(w.category)); return [...nc].filter(isRealCat).sort();
   }
   if(wl.includes('blunt')) {
-    const bc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Blunt')).forEach(w=>bc.add(w.category)); return [...bc].filter(Boolean).sort();
+    const bc = new Set(); weaponList.filter(w=>w.qualities&&w.qualities.includes('Blunt')).forEach(w=>bc.add(w.category)); return [...bc].filter(isRealCat).sort();
   }
   if((wl.includes('any')&&!wl.includes('no longbow')&&!wl.includes('small')&&!wl.includes('size'))
      || clsKey==='Fighter'||clsKey==='Barbarian'||clsKey==='Assassin'||clsKey==='Ranger'
      || clsKey==='Paladin'||clsKey==='ChaosKnight'||clsKey==='Samurai'||clsKey==='Runegraver') {
-    return Object.keys(catSummary).sort();
+    return Object.keys(catSummary).filter(isRealCat).sort();
   }
   // Size restricted (no longbow, no two-handed sword)
   if(wl.includes('no longbow')||wl.includes('small')) {
-    const all = Object.keys(catSummary).filter(c=>c!=='Long bow'&&c!=='Two-handed sword'); return all.sort();
+    const all = Object.keys(catSummary).filter(c=>isRealCat(c)&&c!=='Long bow'&&c!=='Two-handed sword'); return all.sort();
   }
   // Specific category lists
   const allowed = new Set();
@@ -761,9 +764,9 @@ function getAllowedCategories(cd, clsKey) {
   Object.entries(catMap).forEach(([key,cat]) => { if(wl.includes(key)) allowed.add(cat); });
   if(wl.includes('missile')) ['Long bow','Short bow','Crossbow','Sling','Javelin'].forEach(c=>allowed.add(c));
   if(wl.includes('one-handed melee')) {
-    weaponList.filter(w=>w.qualities&&w.qualities.includes('Melee')&&!w.qualities.includes('Two-handed')).forEach(w=>allowed.add(w.category));
+    weaponList.filter(w=>w.qualities&&w.qualities.includes('Melee')&&!w.qualities.includes('Two-handed')).forEach(w=>{if(isRealCat(w.category))allowed.add(w.category);});
   }
-  return allowed.size ? [...allowed].sort() : Object.keys(catSummary).slice(0,4).sort();
+  return allowed.size ? [...allowed].filter(isRealCat).sort() : Object.keys(catSummary).filter(isRealCat).slice(0,4).sort();
 }
 
 // Get one representative weapon from a category
